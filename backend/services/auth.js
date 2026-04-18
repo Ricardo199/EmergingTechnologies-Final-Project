@@ -137,7 +137,56 @@ const authService = {
       }
     };
     return authPayload;
-  }
+  },
+
+  async githubSignIn(code) {
+
+    const url = 'https://github.com/login/oauth/access_token';
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { Accept: "application/json", "Accept-encoding": "application/json" },
+        body: JSON.stringify({
+          client_id: process.env.GITHUB_CLIENT_ID,
+          client_secret: process.env.GITHUB_CLIENT_SECRET,
+          code
+        })
+      });
+      if (!response.ok) {
+        throw new Error('GitHub authentication failed');
+      }
+      const tokenData = await response.json();
+      const accessToken = tokenData.access_token;
+      const userData = this.getUserData();
+    } catch (error) {
+      throw new Error('GitHub authentication failed, error: ' + error.message);
+    }
+    if (!accessToken) {
+      throw new Error('GitHub authentication failed');
+    }
+    let user = await User.findOne( { username: userData.login });
+    if (!user) {
+      const githubUserData = await this.getUserData(accessToken);
+      user = new User({
+        username: githubUserData.login,
+        email: githubUserData.email,
+        password: '',
+        role: 'resident'
+      });
+      await user.save();
+    };
+    authPayload = {
+      accessToken: this.generateToken(user),
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt
+      }
+    }; 
+    return authPayload;
+  },
 };
 
 export default authService;
