@@ -37,11 +37,16 @@ export default function ChatbotMF() {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md flex flex-col h-[520px]">
+    <section aria-label="AI Assistant chat" className="bg-white rounded-xl shadow-md flex flex-col h-[520px]">
       <div className="px-5 py-4 border-b">
-        <h2 className="font-semibold text-gray-800 text-sm">AI Assistant</h2>
+        <h1 className="font-semibold text-gray-800 text-sm">AI Assistant</h1>
       </div>
-      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+      <div
+        role="log"
+        aria-live="polite"
+        aria-label="Chat messages"
+        className="flex-1 overflow-y-auto px-5 py-4 space-y-3"
+      >
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div
@@ -51,32 +56,39 @@ export default function ChatbotMF() {
                   : 'bg-gray-100 text-gray-800 rounded-bl-sm'
               }`}
             >
+              <span className="sr-only">{msg.role === 'user' ? 'You: ' : 'Assistant: '}</span>
               {msg.text}
             </div>
           </div>
         ))}
         {loading && (
-          <div className="flex justify-start">
-            <div className="bg-gray-100 text-gray-400 px-4 py-2 rounded-2xl rounded-bl-sm text-sm">Thinking...</div>
+          <div className="flex justify-start" aria-live="polite">
+            <div className="bg-gray-100 text-gray-400 px-4 py-2 rounded-2xl rounded-bl-sm text-sm" aria-label="Assistant is thinking">
+              Thinking...
+            </div>
           </div>
         )}
         <div ref={bottomRef} />
       </div>
       <form onSubmit={send} className="px-5 py-4 border-t flex gap-2">
+        <label htmlFor="chat-input" className="sr-only">Ask a question</label>
         <input
+          id="chat-input"
           className="flex-1 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
           placeholder="Ask a question..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          autoComplete="off"
         />
         <button
           type="submit"
           disabled={loading}
+          aria-busy={loading}
           className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
         >
           Send
         </button>
       </form>
-    </div>
+    </section>
   );
 }

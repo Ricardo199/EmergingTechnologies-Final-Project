@@ -75,6 +75,7 @@ function Nav({ user, onLogout }) {
   const navLink = (to, label) => (
     <Link
       to={to}
+      aria-current={location.pathname === to ? 'page' : undefined}
       className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors ${
         location.pathname === to
           ? 'border-indigo-600 text-indigo-600'
@@ -86,7 +87,7 @@ function Nav({ user, onLogout }) {
   );
 
   return (
-    <nav className="bg-white shadow-sm">
+    <nav aria-label="Main navigation" className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center gap-8">
@@ -103,8 +104,8 @@ function Nav({ user, onLogout }) {
           <div className="flex items-center">
             {user ? (
               <div className="flex items-center gap-4">
-                <span className="text-sm text-gray-600 capitalize">{user.username} · {user.role}</span>
-                <button onClick={onLogout} className="text-sm text-indigo-600 hover:text-indigo-500">Logout</button>
+                <span className="text-sm text-gray-600 capitalize" aria-label={`Logged in as ${user.username}, role: ${user.role}`}>{user.username} · {user.role}</span>
+                <button onClick={onLogout} className="text-sm text-indigo-600 hover:text-indigo-500 focus:outline-none focus:underline">Logout</button>
               </div>
             ) : (
               <Link to="/login" className="text-sm text-indigo-600 hover:text-indigo-500">Login</Link>

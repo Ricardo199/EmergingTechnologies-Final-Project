@@ -47,8 +47,8 @@ const STATUS_COLORS = {
 function StatCard({ label, value, color }) {
   return (
     <div className="bg-white rounded-xl shadow-sm p-5 border">
-      <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
-      <p className={`text-3xl font-bold mt-1 ${color}`}>{value}</p>
+      <p className="text-xs text-gray-500 uppercase tracking-wide" id={`stat-${label.replace(/\s/g, '-')}`}>{label}</p>
+      <p className={`text-3xl font-bold mt-1 ${color}`} aria-labelledby={`stat-${label.replace(/\s/g, '-')}`}>{value}</p>
     </div>
   );
 }
@@ -72,10 +72,14 @@ export default function AnalyticsMF({ user }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex gap-4 border-b pb-3">
+      <div role="tablist" aria-label="Analytics sections" className="flex gap-4 border-b pb-3">
         {['overview', 'manage'].map((t) => (
           <button
             key={t}
+            role="tab"
+            aria-selected={tab === t}
+            aria-controls={`panel-${t}`}
+            id={`tab-${t}`}
             onClick={() => setTab(t)}
             className={`text-sm font-medium pb-1 border-b-2 transition-colors ${
               tab === t ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -86,10 +90,10 @@ export default function AnalyticsMF({ user }) {
         ))}
       </div>
 
-      {tab === 'overview' && (
+      <div id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" hidden={tab !== 'overview'}>
         <div className="space-y-6">
           {dashLoading ? (
-            <p className="text-gray-400 text-sm">Loading...</p>
+            <p className="text-gray-400 text-sm" aria-live="polite">Loading...</p>
           ) : (
             <>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -99,52 +103,59 @@ export default function AnalyticsMF({ user }) {
               </div>
 
               <div className="bg-white rounded-xl shadow-sm border p-5">
-                <h3 className="text-sm font-semibold text-gray-700 mb-4">Issues by Category</h3>
-                <div className="space-y-2">
+                <h2 className="text-sm font-semibold text-gray-700 mb-4">Issues by Category</h2>
+                <dl className="space-y-2">
                   {dash?.dashboardSummary.byCategory.map(({ category, count }) => {
                     const total = dash.dashboardSummary.byCategory.reduce((s, c) => s + c.count, 0);
                     const pct = total ? Math.round((count / total) * 100) : 0;
                     return (
                       <div key={category}>
                         <div className="flex justify-between text-xs text-gray-600 mb-1">
-                          <span className="capitalize">{category}</span>
-                          <span>{count} ({pct}%)</span>
+                          <dt className="capitalize">{category}</dt>
+                          <dd>{count} ({pct}%)</dd>
                         </div>
-                        <div className="w-full bg-gray-100 rounded-full h-2">
+                        <div
+                          role="progressbar"
+                          aria-valuenow={pct}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-label={`${category}: ${pct}%`}
+                          className="w-full bg-gray-100 rounded-full h-2"
+                        >
                           <div className="bg-indigo-500 h-2 rounded-full" style={{ width: `${pct}%` }} />
                         </div>
                       </div>
                     );
                   })}
-                </div>
+                </dl>
               </div>
 
               <div className="bg-white rounded-xl shadow-sm border p-5">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">AI Trend Insights</h3>
-                <div className="flex flex-wrap gap-2">
+                <h2 className="text-sm font-semibold text-gray-700 mb-3">AI Trend Insights</h2>
+                <ul className="flex flex-wrap gap-2" aria-label="Trend insights by category">
                   {dash?.trendInsights.map(({ category, count }) => (
-                    <span key={category} className="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-medium">
+                    <li key={category} className="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-medium">
                       {category}: {count}
-                    </span>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </div>
             </>
           )}
         </div>
-      )}
+      </div>
 
-      {tab === 'manage' && (
+      <div id="panel-manage" role="tabpanel" aria-labelledby="tab-manage" hidden={tab !== 'manage'}>
         <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
           {issuesLoading ? (
-            <p className="text-gray-400 text-sm p-4">Loading...</p>
+            <p className="text-gray-400 text-sm p-4" aria-live="polite">Loading...</p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm" aria-label="Issues management table">
                 <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
                   <tr>
                     {['Title', 'Category', 'Reporter', 'Status', 'Priority', 'Actions'].map((h) => (
-                      <th key={h} className="px-4 py-3 text-left">{h}</th>
+                      <th key={h} scope="col" className="px-4 py-3 text-left">{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -160,8 +171,12 @@ export default function AnalyticsMF({ user }) {
                         </span>
                       </td>
                       <td className="px-4 py-3">
+                        <label htmlFor={`priority-${issue._id}`} className="sr-only">
+                          Priority for {issue.title}
+                        </label>
                         <select
-                          className="text-xs border rounded px-1 py-0.5"
+                          id={`priority-${issue._id}`}
+                          className="text-xs border rounded px-1 py-0.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
                           value={issue.priority}
                           onChange={(e) => updateIssue({ variables: { id: issue._id, priority: e.target.value } }).then(refetch)}
                         >
@@ -173,7 +188,8 @@ export default function AnalyticsMF({ user }) {
                           {issue.status !== 'in_progress' && issue.status !== 'resolved' && (
                             <button
                               onClick={() => handleStatus(issue._id, 'in_progress')}
-                              className="text-xs text-blue-600 hover:underline"
+                              aria-label={`Mark "${issue.title}" as in progress`}
+                              className="text-xs text-blue-600 hover:underline focus:outline-none focus:underline"
                             >
                               Start
                             </button>
@@ -181,7 +197,8 @@ export default function AnalyticsMF({ user }) {
                           {issue.status !== 'resolved' && (
                             <button
                               onClick={() => handleResolve(issue._id)}
-                              className="text-xs text-green-600 hover:underline"
+                              aria-label={`Resolve "${issue.title}"`}
+                              className="text-xs text-green-600 hover:underline focus:outline-none focus:underline"
                             >
                               Resolve
                             </button>
@@ -195,7 +212,7 @@ export default function AnalyticsMF({ user }) {
             </div>
           )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
