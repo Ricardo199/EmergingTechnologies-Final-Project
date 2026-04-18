@@ -3,11 +3,13 @@ import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import User from '../model/user.js';
 import logger from '../utils/logger.js';
+import { OAuth2Client } from 'google-auth-library';
 
 dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || 'your-client-id';
+const googleAuthClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 const authService = {
   async register(userData) {
     const { username, email, password, role = 'resident' } = userData;
@@ -49,6 +51,7 @@ const authService = {
   },
 
   async login(email, password) {
+
     try {
       const user = await User.findOne({ email });
       if (!user) {
@@ -97,6 +100,43 @@ const authService = {
     } catch (error) {
       return null;
     }
+  },
+
+  async googleSignIn(Token) {
+    let payload;
+    try {
+      const ticket = await googleAuthClient.verifyIdToken({
+        idToken: Token,
+        audience: GOOGLE_CLIENT_ID
+      });
+      payload = ticket.getPayload();
+    } catch (error) {
+      logger.logAuth('googleSignIn', 'unknown', false, error);
+      throw new Error('Google Sign-In failed, error: ' + error.message);
+    }
+    const { email, name } = payload;
+    let user = await User.findOne({ username: email });
+    if (!user) {
+      user = new User({
+        username: email,
+        email,
+        password: '',
+        role: 'resident'
+      });
+      await user.save();
+    }
+    logger.logAuth('googleSignIn', payload.email, true);
+    const authPayload = {
+      accessToken: this.generateToken(user),
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt
+      }
+    };
+    return authPayload;
   }
 };
 
