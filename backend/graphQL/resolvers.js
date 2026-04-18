@@ -182,5 +182,14 @@ export const resolvers = {
             if (!issue) throw new Error('Issue not found');
             return issue;
         },
+
+        googleSignIn: async (_, { token }, { JWT_SECRET }) => {
+            try {
+                const result = await authService.googleSignIn(token);
+                return result;
+            } catch (error) {
+                throw new Error(`Google Sign-In failed: ${error.message}`);
+            }
+        },
     },
 };

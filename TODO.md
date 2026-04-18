@@ -8,7 +8,9 @@
 - [x] JWT-based registration and login (`signUp`, `login` mutations)
 - [x] Role-based access control: `resident`, `staff`, `advocate`
 - [x] Auth micro-frontend (login/signup UI with role selection)
-- [ ] OAuth (Google/GitHub sign-in) — optional
+- [x] Google OAuth — Backend (auth service, GraphQL mutation/resolver, .env)
+- [ ] Google OAuth — Frontend AuthMF button integration
+- [ ] GitHub OAuth — optional
 
 ---
 
@@ -48,6 +50,7 @@
 - [x] GraphQL API via Apollo Server + Express
 - [x] JWT middleware in GraphQL context
 - [x] Environment config (`.env`)
+- [x] Google OAuth service integration (`googleSignIn` mutation)
 - [x] Error handling and input validation
 - [ ] Gemini API integration (currently rule-based placeholders)
 - [ ] LangGraph agent (currently simple heuristic chatbot)
