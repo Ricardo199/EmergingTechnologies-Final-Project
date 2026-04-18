@@ -10,7 +10,8 @@
 - [x] Auth micro-frontend (login/signup UI with role selection)
 - [x] Google OAuth — Backend (auth service, GraphQL mutation/resolver, .env)
 - [x] Google OAuth — Frontend AuthMF button integration (GoogleLogin badge, handlers)
-- [ ] GitHub OAuth — optional
+- [x] GitHub OAuth — Backend (auth service, GraphQL mutation/resolver, .env)
+- [x] GitHub OAuth — Frontend AuthMF button integration (GitHub OAuth flow with callback)
 
 ---
 
