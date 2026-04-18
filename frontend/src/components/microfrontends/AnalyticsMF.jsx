@@ -4,6 +4,30 @@ import { useQuery, useMutation } from '@apollo/client/react';
 import { STATUS_COLORS, PRIORITY_COLORS, STAT_COLORS } from '../../styles/colors';
 import { useNotification } from '../../context/NotificationContext';
 
+/**
+ * AnalyticsMF - Analytics & Issue Management Micro-Frontend
+ * Staff and advocates access this dashboard to:
+ * - View summary statistics (open, resolved, high-priority issues)
+ * - See issues breakdown by category with percentages
+ * - View AI-generated trend insights
+ * - Manage all issues: update status, change priority
+ * 
+ * Features:
+ * - Dashboard overview with key metrics
+ * - Category breakdown with progress bars
+ * - AI trend analysis display
+ * - Table-based issue management
+ * - Inline status/priority editing
+ * - Real-time notification feedback
+ * 
+ * @component
+ * @param {Object} props
+ * @param {Object} props.user - Current user (staff/advocate only)
+ * @returns {JSX.Element} Analytics dashboard with management controls
+ */
+
+// GraphQL query: Dashboard summary metrics
+// Returns: total open/resolved, high priority count, breakdown by category, trend insights
 const DASHBOARD = gql`
   query Dashboard {
     dashboardSummary {
@@ -14,6 +38,8 @@ const DASHBOARD = gql`
   }
 `;
 
+// GraphQL query: All issues for management table
+// Returns: full issue details needed for editing (status, priority, reporter, assignee)
 const GET_ISSUES = gql`
   query AllIssues {
     issues {
@@ -25,6 +51,8 @@ const GET_ISSUES = gql`
   }
 `;
 
+// GraphQL mutation: Update issue status or priority
+// Allows staff to transition issue status and adjust priority level
 const UPDATE_ISSUE = gql`
   mutation UpdateIssue($id: ID!, $status: IssueStatus, $priority: IssuePriority) {
     updateIssue(id: $id, status: $status, priority: $priority) {
@@ -33,29 +61,59 @@ const UPDATE_ISSUE = gql`
   }
 `;
 
+// GraphQL mutation: Mark issue as resolved
+// Transitions issue to resolved status
 const RESOLVE_ISSUE = gql`
   mutation ResolveIssue($id: ID!) {
     resolveIssue(id: $id) { _id status }
   }
 `;
 
+/**
+ * StatCard Component
+ * Displays a single metric (open issues, resolved, high priority, etc.)
+ * Uses color props to visually distinguish different metrics
+ * 
+ * @component
+ * @param {Object} props
+ * @param {string} props.label - Metric label (e.g., "Open Issues")
+ * @param {number} props.value - Metric value to display
+ * @param {string} props.color - Tailwind color class for value text (e.g., "text-yellow-600")
+ * @returns {JSX.Element} Stat card with label and colored value
+ */
 function StatCard({ label, value, color }) {
   return (
     <div className="bg-white rounded-xl shadow-sm p-5 border">
+      {/* Label with unique ID for accessibility */}
       <p className="text-xs text-gray-500 uppercase tracking-wide" id={`stat-${label.replace(/\s/g, '-')}`}>{label}</p>
+      {/* Large, colored metric value */}
       <p className={`text-3xl font-bold mt-1 ${color}`} aria-labelledby={`stat-${label.replace(/\s/g, '-')}`}>{value}</p>
     </div>
   );
 }
 
 export default function AnalyticsMF({ user }) {
+  // Tab navigation: 'overview' for dashboard, 'manage' for issue management table
   const [tab, setTab] = useState('overview');
+  
+  // Notification system for user feedback
   const { showNotification } = useNotification();
+  
+  // Dashboard summary metrics: total counts, category breakdown, trends
   const { data: dash, loading: dashLoading } = useQuery(DASHBOARD);
+  
+  // All issues for management table with ability to refetch after changes
   const { data: issuesData, loading: issuesLoading, refetch } = useQuery(GET_ISSUES);
+  
+  // Mutations for updating issue status, priority, and resolution
   const [updateIssue] = useMutation(UPDATE_ISSUE);
   const [resolveIssue] = useMutation(RESOLVE_ISSUE);
 
+  /**
+   * Update issue status (reported → in_progress → resolved → closed)
+   * @param {string} id - Issue ID
+   * @param {string} status - New status value
+   */
   const handleStatus = async (id, status) => {
     try {
       await updateIssue({ variables: { id, status } });
@@ -66,6 +124,10 @@ export default function AnalyticsMF({ user }) {
     }
   };
 
+  /**
+   * Resolve issue (convenience button for marking as resolved)
+   * @param {string} id - Issue ID to resolve
+   */
   const handleResolve = async (id) => {
     try {
       await resolveIssue({ variables: { id } });
@@ -78,6 +140,7 @@ export default function AnalyticsMF({ user }) {
 
   return (
     <div className="space-y-6">
+      {/* Tab navigation: Overview vs. Manage */}
       <div role="tablist" aria-label="Analytics sections" className="flex gap-4 border-b pb-3">
         {['overview', 'manage'].map((t) => (
           <button
@@ -96,18 +159,21 @@ export default function AnalyticsMF({ user }) {
         ))}
       </div>
 
+      {/* Overview tab: Dashboard metrics and insights */}
       <div id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" hidden={tab !== 'overview'}>
         <div className="space-y-6">
           {dashLoading ? (
             <p className="text-gray-400 text-sm" aria-live="polite">Loading...</p>
           ) : (
             <>
+              {/* Key metrics cards */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <StatCard label="Open Issues" value={dash?.dashboardSummary.totalOpen} color="text-yellow-600" />
                 <StatCard label="Resolved" value={dash?.dashboardSummary.totalResolved} color="text-green-600" />
                 <StatCard label="High Priority" value={dash?.dashboardSummary.highPriority} color="text-red-600" />
               </div>
 
+              {/* Issues breakdown by category with progress bars */}
               <div className="bg-white rounded-xl shadow-sm border p-5">
                 <h2 className="text-sm font-semibold text-gray-700 mb-4">Issues by Category</h2>
                 <dl className="space-y-2">
@@ -116,10 +182,12 @@ export default function AnalyticsMF({ user }) {
                     const pct = total ? Math.round((count / total) * 100) : 0;
                     return (
                       <div key={category}>
+                        {/* Category label and count */}
                         <div className="flex justify-between text-xs text-gray-600 mb-1">
                           <dt className="capitalize">{category}</dt>
                           <dd>{count} ({pct}%)</dd>
                         </div>
+                        {/* Progress bar showing percentage */}
                         <div
                           role="progressbar"
                           aria-valuenow={pct}
@@ -136,6 +204,7 @@ export default function AnalyticsMF({ user }) {
                 </dl>
               </div>
 
+              {/* AI-generated trend insights */}
               <div className="bg-white rounded-xl shadow-sm border p-5">
                 <h2 className="text-sm font-semibold text-gray-700 mb-3">AI Trend Insights</h2>
                 <ul className="flex flex-wrap gap-2" aria-label="Trend insights by category">
@@ -151,12 +220,14 @@ export default function AnalyticsMF({ user }) {
         </div>
       </div>
 
+      {/* Manage tab: Issue management table with inline editing */}
       <div id="panel-manage" role="tabpanel" aria-labelledby="tab-manage" hidden={tab !== 'manage'}>
         <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
           {issuesLoading ? (
             <p className="text-gray-400 text-sm p-4" aria-live="polite">Loading...</p>
           ) : (
             <div className="overflow-x-auto">
+              {/* Issues management table */}
               <table className="w-full text-sm" aria-label="Issues management table">
                 <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
                   <tr>
@@ -168,14 +239,23 @@ export default function AnalyticsMF({ user }) {
                 <tbody className="divide-y divide-gray-100">
                   {issuesData?.issues?.map((issue) => (
                     <tr key={issue._id} className="hover:bg-gray-50">
+                      {/* Issue title (truncated) */}
                       <td className="px-4 py-3 font-medium text-gray-900 max-w-[180px] truncate">{issue.title}</td>
+                      
+                      {/* Issue category */}
                       <td className="px-4 py-3 text-gray-500 capitalize">{issue.category}</td>
+                      
+                      {/* Reporter username */}
                       <td className="px-4 py-3 text-gray-500">{issue.reportedBy?.username}</td>
+                      
+                      {/* Status badge */}
                       <td className="px-4 py-3">
                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[issue.status]}`}>
                           {issue.status.replace('_', ' ')}
                         </span>
                       </td>
+                      
+                      {/* Priority selector (inline editing) */}
                       <td className="px-4 py-3">
                         <label htmlFor={`priority-${issue._id}`} className="sr-only">
                           Priority for {issue.title}
@@ -189,6 +269,8 @@ export default function AnalyticsMF({ user }) {
                           {['low', 'medium', 'high'].map((p) => <option key={p} value={p}>{p}</option>)}
                         </select>
                       </td>
+                      
+                      {/* Action buttons: Start or Resolve */}
                       <td className="px-4 py-3">
                         <div className="flex gap-2">
                           {issue.status !== 'in_progress' && issue.status !== 'resolved' && (

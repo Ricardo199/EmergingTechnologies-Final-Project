@@ -5,6 +5,22 @@ import { GoogleLogin } from '@react-oauth/google';
 import { useNotification } from '../../context/NotificationContext';
 import { INPUT_CLASS, LABEL_CLASS, BUTTON_PRIMARY, SELECT_CLASS } from '../../styles/formInputs';
 
+/**
+ * AuthMF - Authentication Micro-Frontend
+ * Handles user registration, login, and OAuth sign-in flows (Google, GitHub)
+ * Manages form state and persists authentication tokens to localStorage
+ * 
+ * Features:
+ * - Email/password registration with role selection
+ * - Email/password login
+ * - Google OAuth sign-in
+ * - GitHub OAuth sign-in
+ * - Real-time error/success notifications
+ * - Loading states during authentication
+ */
+
+// GraphQL mutation: Email/password login
+// Returns JWT token and user profile
 const LOGIN = gql`
   mutation Login($email: String!, $password: String!) {
     login(email: $email, password: $password) {
@@ -14,6 +30,8 @@ const LOGIN = gql`
   }
 `;
 
+// GraphQL mutation: Email/password registration
+// Returns JWT token and newly created user profile
 const SIGNUP = gql`
   mutation SignUp($username: String!, $email: String!, $password: String!, $role: Role) {
     signUp(username: $username, email: $email, password: $password, role: $role) {
@@ -23,6 +41,8 @@ const SIGNUP = gql`
   }
 `;
 
+// GraphQL mutation: Google OAuth sign-in
+// Frontend sends Google ID token, backend verifies and creates/finds user
 const GOOGLE_SIGNIN = gql`
   mutation GoogleSignIn($token: String!) {
     googleSignIn(token: $token) {
@@ -32,6 +52,8 @@ const GOOGLE_SIGNIN = gql`
   }
 `;
 
+// GraphQL mutation: GitHub OAuth sign-in
+// Frontend sends auth code, backend exchanges for access token and fetches user
 const GITHUB_SIGNIN = gql`
   mutation GitHubSignIn($code: String!) {
     githubSignIn(code: $code) {
@@ -41,22 +63,64 @@ const GITHUB_SIGNIN = gql`
   }
 `;
 
+/**
+ * AuthMF Component
+ * @component
+ * @param {Object} props
+ * @param {Function} props.onAuth - Callback fired after successful authentication with user data
+ * @returns {JSX.Element} Authentication form and OAuth buttons
+ * 
+ * @example
+ * <AuthMF onAuth={(user) => setUser(user)} />
+ */
 export default function AuthMF({ onAuth }) {
+  // Toggle between login and signup modes
   const [isLogin, setIsLogin] = useState(true);
-  const [form, setForm] = useState({ username: '', email: '', password: '', role: 'resident' });
+  
+  // Form state for email/password authentication
+  const [form, setForm] = useState({ 
+    username: '', 
+    email: '', 
+    password: '', 
+    role: 'resident' // Default role for new users
+  });
+  
+  // Error message display
   const [error, setError] = useState('');
+  
+  // Notification system for feedback messages
   const { showNotification } = useNotification();
 
+  // Apollo mutations for different auth methods
   const [login, { loading: loginLoading }] = useMutation(LOGIN);
   const [signUp, { loading: signupLoading }] = useMutation(SIGNUP);
   const [googleSignIn, { loading: googleLoading }] = useMutation(GOOGLE_SIGNIN);
   const [githubSignIn, { loading: githubLoading }] = useMutation(GITHUB_SIGNIN);
+  
+  // Combined loading state (disable buttons while any auth is pending)
   const loading = loginLoading || signupLoading || googleLoading || githubLoading;
 
+  /**
+   * Generic form field updater
+   * Creates closure to handle multiple form fields
+   * @param {string} key - Form field key (username, email, password, role)
+   * @returns {Function} Event handler for input changes
+   */
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
+  /**
+   * Handle successful authentication
+   * Stores JWT token and user profile in localStorage
+   * Calls parent callback to update app auth state
+   * Shows welcome notification
+   * @param {Object} payload - AuthPayload from backend
+   * @param {string} payload.accessToken - JWT token
+   * @param {Object} payload.user - User profile data
+   */
   const handleAuth = (payload) => {
+    // Store JWT token for subsequent API requests
     localStorage.setItem('token', payload.accessToken);
+    // Store user profile for display and role-based UI
     localStorage.setItem('user', JSON.stringify(payload.user));
     showNotification(`Welcome, ${payload.user.username}!`, 'success', 2000);
     onAuth(payload.user);
