@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import { ApolloClient, InMemoryCache, createHttpLink, gql } from '@apollo/client';
 import { ApolloProvider, useQuery } from '@apollo/client/react';
