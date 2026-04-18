@@ -113,5 +113,6 @@ export const typeDefs = gql`
         ): Issue!
         assignIssue(id: ID!, assignedTo: ID!): Issue!
         resolveIssue(id: ID!): Issue!
+        googleSignIn(token: String!): AuthPayload!
     }
 `
