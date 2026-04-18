@@ -71,8 +71,8 @@
 - [x] React Router v7 with role-based route guards
 - [x] Tailwind CSS v4 via `@tailwindcss/vite`
 - [x] Responsive layout (mobile-friendly nav and grids)
-- [ ] Photo upload UI for issue reporting
-- [ ] Real-time alerts / notification banner — optional
+- [x] Photo upload UI for issue reporting (file input with preview)
+- [x] Real-time alerts / notification banner (context-based notifications with auto-dismiss)
 
 ---
 

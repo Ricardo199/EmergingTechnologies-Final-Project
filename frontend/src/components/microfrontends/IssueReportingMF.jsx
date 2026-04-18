@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { gql } from '@apollo/client';
 import { useQuery, useMutation } from '@apollo/client/react';
+import { useNotification } from '../context/NotificationContext';
 
 const GET_ISSUES = gql`
   query Issues($status: IssueStatus) {
@@ -46,6 +47,7 @@ export default function IssueReportingMF({ user }) {
   const [statusFilter, setStatusFilter] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const { showNotification } = useNotification();
 
   const { data, loading, refetch } = useQuery(GET_ISSUES, {
     variables: statusFilter ? { status: statusFilter } : {},
@@ -100,11 +102,13 @@ export default function IssueReportingMF({ user }) {
         },
       });
       setSuccess('Issue reported successfully!');
+      showNotification('Issue reported successfully!', 'success', 3000);
       setForm(BLANK);
       refetch();
       setTimeout(() => setTab('list'), 1500);
     } catch (err) {
       setError(err.message);
+      showNotification(err.message, 'error');
     }
   };
 

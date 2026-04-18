@@ -74,6 +74,7 @@ export default function AuthMF({ onAuth }) {
       handleAuth(payload);
     } catch (err) {
       setError(err.message);
+      showNotification(err.message, 'error');
     }
   };
 
@@ -84,11 +85,14 @@ export default function AuthMF({ onAuth }) {
       handleAuth(data.googleSignIn);
     } catch (err) {
       setError(err.message);
+      showNotification(err.message, 'error');
     }
   };
 
   const handleGoogleError = () => {
-    setError('Google sign-in failed. Please try again.');
+    const msg = 'Google sign-in failed. Please try again.';
+    setError(msg);
+    showNotification(msg, 'error');
   };
 
   const handleGitHubClick = () => {
