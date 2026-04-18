@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { useLazyQuery, gql } from '@apollo/client';
+import { gql } from '@apollo/client';
+import { useLazyQuery } from '@apollo/client/react';
 
 const AGENT_ANSWER = gql`
   query AgentAnswer($question: String!) {
