@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
-import User from '../model/user.js';
+import {User, user} from '../model/user.js';
 import logger from '../utils/logger.js';
 
 dotenv.config();
@@ -30,7 +30,18 @@ const authService = {
       await user.save();
       logger.logAuth('register', email, true);
 
-      return user;
+      const token = this.generateToken(user);
+      return {
+        accessToken: token,
+        user: {
+          _id: user._id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          createdAt: user.createdAt
+        }
+      };
+
     } catch (error) {
       logger.logAuth('register', email, false, error);
       throw error;
@@ -50,7 +61,18 @@ const authService = {
       }
 
       logger.logAuth('login', email, true);
-      return this.generateToken(user);
+      const token = this.generateToken(user);
+      return {
+        accessToken: token,
+        user: {
+          _id: user._id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          createdAt: user.createdAt
+        }
+      };
+
     } catch (error) {
       logger.logAuth('login', email, false, error);
       throw error;
