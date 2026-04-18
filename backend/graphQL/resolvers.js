@@ -191,5 +191,14 @@ export const resolvers = {
                 throw new Error(`Google Sign-In failed: ${error.message}`);
             }
         },
+
+        githubSignIn: async (_, { token }, { JWT_SECRET }) => {
+            try{
+                const result = await authService.githubSignIn(token);
+                return result;
+            } catch (error) {
+                throw new Error(`GitHub Sign-In failed: ${error.message}`);
+            }
+        }
     },
 };
