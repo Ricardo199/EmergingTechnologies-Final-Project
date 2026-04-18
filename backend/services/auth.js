@@ -142,6 +142,7 @@ const authService = {
   async githubSignIn(code) {
 
     const url = 'https://github.com/login/oauth/access_token';
+    let accessToken, userData, authPayload;
     try {
       const response = await fetch(url, {
         method: "POST",
@@ -156,26 +157,39 @@ const authService = {
         throw new Error('GitHub authentication failed');
       }
       const tokenData = await response.json();
-      const accessToken = tokenData.access_token;
-      const userData = this.getUserData();
+
+      const userResponse = await fetch('https://api.github.com/user', {
+        method: "GET",
+        headers: {
+          Authorization: `token ${tokenData.access_token}`,
+          Accept: "application/vnd.github.v3+json",
+          'X-GitHub-Api-Version': '2022-11-28'
+        }
+      });
+      if (!userResponse.ok) {
+        throw new Error('Failed to fetch GitHub user data');
+      }
+      userData = await userResponse.json();
+      accessToken = tokenData.access_token;
     } catch (error) {
+      logger.logAuth('githubSignIn', 'unknown', false, error);
       throw new Error('GitHub authentication failed, error: ' + error.message);
     }
     if (!accessToken) {
       throw new Error('GitHub authentication failed');
     }
-    let user = await User.findOne( { username: userData.login });
+
+    let user = await User.findOne({ email: userData.email });
     if (!user) {
-      const githubUserData = await this.getUserData(accessToken);
       user = new User({
-        username: githubUserData.login,
-        email: githubUserData.email,
+        username: userData.login,
+        email: userData.email,
         password: '',
         role: 'resident'
       });
       await user.save();
     };
-    authPayload = {
+    const authPayload = {
       accessToken: this.generateToken(user),
       user: {
         _id: user._id,
@@ -184,7 +198,8 @@ const authService = {
         role: user.role,
         createdAt: user.createdAt
       }
-    }; 
+    };
+    logger.logAuth('githubSignIn', user.email, true);
     return authPayload;
   },
 };
