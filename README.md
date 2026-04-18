@@ -443,7 +443,9 @@ const geminiService = {
 
 ## 📝 License
 
-This project is part of the "Emerging Technologies" course final project.
+This project is licensed under the **GNU General Public License v3.0** (GPLv3).
+
+See [LICENSE](./LICENSE) file for details. This means you are free to use, modify, and distribute this software under the terms of the GPLv3. If you distribute this project or modifications, you must include the license and disclose your changes.
 
 ---
 
