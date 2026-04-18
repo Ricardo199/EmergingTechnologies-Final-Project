@@ -1,115 +1,169 @@
-# Civic Issue Tracker - TODO
+# Civic Issue Tracker - TODO & Rubric Tracking
 
 **Civic Focus:** General municipal issues (potholes, streetlights, flooding, safety)
 
 ---
 
-## 1. Authentication & User Management
-- [x] JWT-based registration and login (`signUp`, `login` mutations)
-- [x] Role-based access control: `resident`, `staff`, `advocate`
-- [x] Auth micro-frontend (login/signup UI with role selection)
-- [x] Google OAuth — Backend (auth service, GraphQL mutation/resolver, .env)
-- [x] Google OAuth — Frontend AuthMF button integration (GoogleLogin badge, handlers)
-- [x] GitHub OAuth — Backend (auth service, GraphQL mutation/resolver, .env)
-- [x] GitHub OAuth — Frontend AuthMF button integration (GitHub OAuth flow with callback)
+## Grading Rubric Alignment
+
+### 1. MongoDB Database (proper use of document structure/model)
+**Current Level: 80-100% (Excellent to Outstanding)** ✅
+
+- [x] **User Model** — Proper schema with username, email, password (hashed), role-based access control (resident/staff/advocate), timestamps
+- [x] **Issue Model** — Comprehensive document with title, description, category, status, priority, location (GeoJSON), reporter/assignee refs, AI classification, timestamps
+- [x] **Data Integrity** — Indexes on frequently queried fields (status, category, reportedBy), proper constraints and validation
+- [x] **Relationships** — User references (reportedBy, assignedTo) with proper population, no data duplication
+- [x] **Geospatial Data** — GeoJSON Point type for location coordinates and address
+
+**Remaining (Optional):**
+- [ ] Time-series data for analytics (issue creation trends by date)
+- [ ] Aggregation pipeline indexes for high-volume queries
 
 ---
 
-## 2. Core Features
+### 2. GraphQL API Design and Implementation
+**Current Level: 80-100% (Excellent to Outstanding)** ✅
 
-### Residents
-- [x] Issue reporting with geotag and address (`reportIssue` mutation)
-- [x] Issue tracking with status filters (reported, in_progress, resolved, closed)
-- [x] AI categorization on submission (rule-based, backend)
-- [ ] Photo upload on issue submission
-- [ ] Real-time notifications / urgent alerts — optional
+- [x] **Authentication Mutations** — `signUp`, `login`, `googleSignIn`, `githubSignIn` with AuthPayload
+- [x] **Issue Mutations** — `reportIssue`, `updateIssue`, `assignIssue`, `resolveIssue` (full CRUD)
+- [x] **Queries** — `me`, `issue`, `issues` (with filters), `dashboardSummary`, `trendInsights`, `agentAnswer`, `aiSummary`, `searchIssues`
+- [x] **Custom Scalars & Types** — Proper enums (Role, IssueStatus, IssueCategory, IssuePriority), input types, resolvers
+- [x] **Error Handling** — Apollo errors with descriptive messages, proper HTTP status codes
+- [x] **Authorization** — JWT context middleware, role-based query/mutation access control
+- [x] **Input Validation** — Mongoose schema validation, GraphQL type checking
 
-### Municipal Staff
-- [x] Issue management dashboard (assign, update status, change priority)
-- [x] Resolve and triage issues (`resolveIssue`, `updateIssue`, `assignIssue`)
-- [x] Analytics: backlog counts, high-priority count, issues by category
-- [x] AI trend detection (`trendInsights` query)
-- [ ] Heatmap visualization — optional
-
-### Community Advocates
-- [x] Trend monitoring via Analytics micro-frontend
-- [ ] Comment / upvote on issues — optional
-- [ ] Volunteer coordination — optional
+**Remaining (Enhancements):**
+- [ ] Real-time subscriptions (WebSocket for notifications)
+- [ ] Pagination cursors for large result sets
+- [ ] Rate limiting middleware
 
 ---
 
-## 3. Backend
+### 3. Front End Design (proper use of architecture/libraries/frameworks)
+**Current Level: 80-100% (Excellent to Outstanding)** ✅
 
-### Architecture (Microservices — all in monorepo, logically separated)
-- [x] User Authentication Service (`services/auth.js`)
-- [x] Issue Management Service (`services/issuesService.js`)
-- [x] Analytics & AI Service (`services/aiService.js`)
-- [ ] Community Engagement Service (comments, upvotes) — optional
+**Architecture:**
+- [x] **Micro-Frontends** — AuthMF, IssueReportingMF, AnalyticsMF, ChatbotMF (clean separation of concerns)
+- [x] **State Management** — Apollo Client v4 for server state, React hooks for local state, Context API for notifications
+- [x] **Routing** — React Router v7 with role-based route guards (`/dashboard`, `/issues`, `/analytics`, `/chat`, `/login`)
+- [x] **Styling** — Tailwind CSS v4 with shared constants (colors.js, formInputs.js) for DRY principles
 
-### Infrastructure
-- [x] MongoDB with Mongoose models (`User`, `Issue`)
-- [x] GraphQL API via Apollo Server + Express
-- [x] JWT middleware in GraphQL context
-- [x] Environment config (`.env`)
-- [x] Google OAuth service integration (`googleSignIn` mutation)
-- [x] Error handling and input validation
-- [ ] Gemini API integration (currently rule-based placeholders)
-- [ ] LangGraph agent (currently simple heuristic chatbot)
+**Implementation Quality:**
+- [x] **Responsive Design** — Mobile-first, grid layouts, responsive navigation
+- [x] **UI Components** — Auth form, issue report form, issue list with filters, analytics dashboard, chatbot
+- [x] **User Experience** — Notification banner with auto-dismiss, loading states, error messages, success feedback
+- [x] **Accessibility** — ARIA labels, roles, live regions, keyboard navigation, semantic HTML
+- [x] **Photo Upload** — File input with preview, optional image submission
+- [x] **Real-time Feedback** — Notification toast system across all components
 
----
-
-## 4. Frontend (React 19.2 + Vite)
-
-### Micro-Frontends
-- [x] `AuthMF` — login/signup with role selection
-- [x] `IssueReportingMF` — report form (geolocation) + issue list with filters
-- [x] `AnalyticsMF` — stats overview, category bar charts, AI trends, staff management table
-- [x] `ChatbotMF` — AI assistant chat UI (`agentAnswer` query)
-
-### General
-- [x] Apollo Client v4 with auth link (JWT header injection)
-- [x] React Router v7 with role-based route guards
-- [x] Tailwind CSS v4 via `@tailwindcss/vite`
-- [x] Responsive layout (mobile-friendly nav and grids)
-- [x] Photo upload UI for issue reporting (file input with preview)
-- [x] Real-time alerts / notification banner (context-based notifications with auto-dismiss)
+**Remaining (Enhancements):**
+- [ ] Dark mode toggle
+- [ ] Advanced filtering/search UI
+- [ ] Map visualization for geotag data
 
 ---
 
-## 5. AI Integrations
+### 4. Friendliness and Naming Guidelines (functional components, variables, methods, comments)
+**Current Level: 70-79% (Good to Excellent)** ✅
 
-- [x] Agentic chatbot (`agentAnswer` — answers Q&A about open/resolved issues and trends)
-- [x] AI summarization (`aiSummary` query)
-- [x] Issue classification & triage (rule-based, `aiService.js`)
-- [x] Trend detection (`detectTrends` in `aiService.js`)
-- [ ] **Gemini API** — replace rule-based heuristics with real Gemini calls
-- [ ] **LangGraph** — upgrade chatbot to multi-step agentic reasoning
-- [ ] Sentiment analysis — optional
+**Naming Standards (Implemented):**
+- [x] **Components** — PascalCase (AuthMF, IssueReportingMF, AnalyticsMF, ChatbotMF, NotificationBanner)
+- [x] **Hooks** — camelCase with `use` prefix (useQuery, useMutation, useNotification)
+- [x] **Variables** — camelCase (form, error, success, isLogin, statusFilter, isLoading)
+- [x] **Methods** — camelCase verbs (handleSubmit, handleAuth, handleStatus, showNotification, dismissNotification)
+- [x] **Constants** — UPPER_SNAKE_CASE (INPUT_CLASS, LABEL_CLASS, STATUS_COLORS, PRIORITY_COLORS, BLANK)
+- [x] **GraphQL Queries/Mutations** — UPPER_SNAKE_CASE (LOGIN, SIGNUP, REPORT_ISSUE, GET_ISSUES, AGENT_ANSWER)
+- [x] **Props** — Descriptive, no abbreviations (user, onAuth, onLogout, showNotification, dismissNotification)
 
----
+**Documentation (Partial):**
+- [x] GraphQL type definitions are self-documenting
+- [x] Service functions have clear purpose (authService.register, issuesService.getIssues, etc.)
+- [ ] **TODO:** Add JSDoc comments to complex functions
+- [ ] **TODO:** Add inline comments explaining business logic
+- [ ] **TODO:** Add README code examples with function signatures
 
-## 6. UI & Design
-- [x] Tailwind CSS for all styling
-- [x] Responsive design (grid layouts, mobile nav)
-- [x] Accessibility audit (ARIA labels, keyboard nav)
-  - [x] `<label>` + `id` on all form inputs
-  - [x] `role="alert"` + `aria-live` on error/success messages
-  - [x] `role="tablist"` / `role="tab"` / `aria-selected` on tab UIs
-  - [x] `aria-pressed` on filter toggle buttons
-  - [x] `role="progressbar"` + `aria-valuenow` on category bars
-  - [x] `scope="col"` + `aria-label` on table, `sr-only` labels for priority selects
-  - [x] Descriptive `aria-label` on action buttons (Start/Resolve include issue title)
-  - [x] `role="log"` + `aria-live="polite"` on chat message list
-  - [x] `sr-only` speaker labels (You/Assistant) in chat
-  - [x] `aria-label` on `<nav>`, `aria-current="page"` on active nav links
-  - [x] `aria-busy` on submit/send buttons during loading
-  - [x] Accessible geolocation button (`aria-label` replaces emoji-only label)
-  - [x] `autoComplete` attributes on auth inputs
-  - [x] `<time dateTime>` on issue dates
+**Remaining to Reach 80-100%:**
+- [ ] JSDoc comments on all exported functions
+- [ ] Inline comments on complex algorithms
+- [ ] README with code examples and API documentation
 
 ---
 
-## 7. Documentation
-- [ ] README with setup instructions (backend + frontend)
-- [ ] Document civic focus and 30% customization choices
-- [ ] API schema documentation
+### 5. Intelligent Use of Data / Deep Learning
+**Current Level: 40-59% (Failure to Minimal)** ⚠️
+
+**Current Implementation (Rule-Based Heuristics):**
+- [x] **Issue Classification** — Rule-based categorization (keyword matching for pothole, streetlight, flooding, safety)
+- [x] **Trend Detection** — Basic aggregation by category and status
+- [x] **Chatbot Q&A** — Simple pattern matching for questions (hardcoded responses)
+
+**AI/ML Gaps (Target: 80-100%):**
+- [ ] **Gemini API Integration** — Replace rule-based classification with real LLM
+  - [ ] Implement geminiService.classifyIssue(title, description) → uses Gemini to infer category
+  - [ ] Implement geminiService.generateInsight(issues) → uses Gemini for trend analysis
+  - [ ] Implement geminiService.answerQuestion(question, context) → real agentic reasoning
+  - [ ] Add error handling and fallback to rule-based if API fails
+  - [ ] Set GEMINI_API_KEY in backend/.env
+- [ ] **LangGraph Agent** — Multi-step reasoning for chatbot
+  - [ ] Implement graph-based conversation flow
+  - [ ] Add memory of previous context in conversation
+  - [ ] Add tool use (query issues, get stats, etc.)
+- [ ] **Sentiment Analysis** — Understand tone of issue descriptions
+- [ ] **Predictive Analytics** — Forecast issue volumes, prioritization
+
+**Priority Focus:**
+1. ⚠️ **HIGH:** Gemini API integration (moves from 40% to 70%)
+2. ⚠️ **MEDIUM:** LangGraph chatbot upgrade (moves to 80-90%)
+3. ⚠️ **LOW:** Sentiment analysis & predictions (polish to 90-100%)
+
+---
+
+## Implementation Tasks by Phase
+
+### Phase 1: Current (Completed) ✅
+- [x] MongoDB schema & models (User, Issue)
+- [x] GraphQL API (auth, issues, analytics)
+- [x] React frontend (all micro-frontends)
+- [x] Frontend naming & architecture
+- [x] Rule-based AI & chatbot
+
+### Phase 2: AI/ML Upgrade (Priority) ⚠️
+**Brings AI/ML criterion from 40% → 80-100%**
+
+1. **Gemini Integration**
+   - [ ] Install `@google/generative-ai` package
+   - [ ] Create `backend/services/geminiService.js`
+   - [ ] Replace rule-based classification with Gemini in `reportIssue` resolver
+   - [ ] Replace hardcoded trends with Gemini analysis
+   - [ ] Update `agentAnswer` to use Gemini instead of heuristics
+
+2. **LangGraph Chatbot** (Optional but recommended)
+   - [ ] Install `langraph` package
+   - [ ] Create `backend/services/chatbotGraph.js`
+   - [ ] Implement multi-turn conversation graph
+   - [ ] Add context memory between messages
+
+3. **Enhanced Features**
+   - [ ] Sentiment scoring for issues (detect frustration/urgency)
+   - [ ] Auto-prioritization using ML
+   - [ ] Predictive response times
+
+### Phase 3: Documentation (Polish) 📝
+- [ ] JSDoc comments on all functions
+- [ ] README with setup & API examples
+- [ ] Architecture diagrams
+
+---
+
+## Scoring Summary (Current State)
+
+| Criterion | Level | Score | Status |
+|-----------|-------|-------|--------|
+| MongoDB Design | Excellent to Outstanding | 80-100% | ✅ Complete |
+| GraphQL API | Excellent to Outstanding | 80-100% | ✅ Complete |
+| Front End Design | Excellent to Outstanding | 80-100% | ✅ Complete |
+| Naming Guidelines | Good to Excellent | 70-79% | ✅ Complete |
+| AI/Deep Learning | Failure to Minimal | 40-59% | ⚠️ **In Progress** |
+| **Overall** | **Good to Excellent** | **70-79%** | 🎯 **Target: 80%+** |
+
+**Next Focus:** Phase 2 (Gemini Integration) to push AI/ML to 80-100% and overall score to 85%+
