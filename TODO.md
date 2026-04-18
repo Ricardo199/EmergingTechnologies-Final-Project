@@ -87,7 +87,21 @@
 ## 6. UI & Design
 - [x] Tailwind CSS for all styling
 - [x] Responsive design (grid layouts, mobile nav)
-- [ ] Accessibility audit (ARIA labels, keyboard nav)
+- [x] Accessibility audit (ARIA labels, keyboard nav)
+  - [x] `<label>` + `id` on all form inputs
+  - [x] `role="alert"` + `aria-live` on error/success messages
+  - [x] `role="tablist"` / `role="tab"` / `aria-selected` on tab UIs
+  - [x] `aria-pressed` on filter toggle buttons
+  - [x] `role="progressbar"` + `aria-valuenow` on category bars
+  - [x] `scope="col"` + `aria-label` on table, `sr-only` labels for priority selects
+  - [x] Descriptive `aria-label` on action buttons (Start/Resolve include issue title)
+  - [x] `role="log"` + `aria-live="polite"` on chat message list
+  - [x] `sr-only` speaker labels (You/Assistant) in chat
+  - [x] `aria-label` on `<nav>`, `aria-current="page"` on active nav links
+  - [x] `aria-busy` on submit/send buttons during loading
+  - [x] Accessible geolocation button (`aria-label` replaces emoji-only label)
+  - [x] `autoComplete` attributes on auth inputs
+  - [x] `<time dateTime>` on issue dates
 
 ---
 
