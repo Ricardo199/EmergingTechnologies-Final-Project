@@ -192,9 +192,9 @@ export const resolvers = {
             }
         },
 
-        githubSignIn: async (_, { token }, { JWT_SECRET }) => {
+        githubSignIn: async (_, { code }, { JWT_SECRET }) => {
             try{
-                const result = await authService.githubSignIn(token);
+                const result = await authService.githubSignIn(code);
                 return result;
             } catch (error) {
                 throw new Error(`GitHub Sign-In failed: ${error.message}`);
