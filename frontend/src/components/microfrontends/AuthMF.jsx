@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { gql } from '@apollo/client';
 import { useMutation } from '@apollo/client/react';
 import { GoogleLogin } from '@react-oauth/google';
+import { useNotification } from '../context/NotificationContext';
 
 const LOGIN = gql`
   mutation Login($email: String!, $password: String!) {
@@ -45,6 +46,7 @@ export default function AuthMF({ onAuth }) {
   const [isLogin, setIsLogin] = useState(true);
   const [form, setForm] = useState({ username: '', email: '', password: '', role: 'resident' });
   const [error, setError] = useState('');
+  const { showNotification } = useNotification();
 
   const [login, { loading: loginLoading }] = useMutation(LOGIN);
   const [signUp, { loading: signupLoading }] = useMutation(SIGNUP);
@@ -57,6 +59,7 @@ export default function AuthMF({ onAuth }) {
   const handleAuth = (payload) => {
     localStorage.setItem('token', payload.accessToken);
     localStorage.setItem('user', JSON.stringify(payload.user));
+    showNotification(`Welcome, ${payload.user.username}!`, 'success', 2000);
     onAuth(payload.user);
   };
 

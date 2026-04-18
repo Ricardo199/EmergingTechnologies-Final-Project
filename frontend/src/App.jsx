@@ -4,6 +4,8 @@ import { ApolloClient, InMemoryCache, createHttpLink, gql } from '@apollo/client
 import { ApolloProvider, useQuery } from '@apollo/client/react';
 import { setContext } from '@apollo/client/link/context';
 
+import { NotificationProvider } from './context/NotificationContext';
+import NotificationBanner from './components/NotificationBanner';
 import AuthMF from './components/microfrontends/AuthMF';
 import IssueReportingMF from './components/microfrontends/IssueReportingMF';
 import AnalyticsMF from './components/microfrontends/AnalyticsMF';
@@ -133,28 +135,31 @@ function App() {
 
   return (
     <ApolloProvider client={client}>
-      <Router>
-        <div className="min-h-screen bg-gray-50">
-          <Nav user={user} onLogout={handleLogout} />
-          <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-            <Routes>
-              <Route path="/" element={<Navigate to={user ? '/dashboard' : '/login'} />} />
-              <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <AuthMF onAuth={handleAuth} />} />
-              <Route path="/dashboard" element={user ? <Dashboard user={user} /> : <Navigate to="/login" />} />
-              <Route path="/issues" element={user ? <IssueReportingMF user={user} /> : <Navigate to="/login" />} />
-              <Route
-                path="/analytics"
-                element={
-                  user && (user.role === 'staff' || user.role === 'advocate')
-                    ? <AnalyticsMF user={user} />
-                    : <Navigate to="/dashboard" />
-                }
-              />
-              <Route path="/chat" element={user ? <ChatbotMF /> : <Navigate to="/login" />} />
-            </Routes>
-          </main>
-        </div>
-      </Router>
+      <NotificationProvider>
+        <Router>
+          <div className="min-h-screen bg-gray-50">
+            <NotificationBanner />
+            <Nav user={user} onLogout={handleLogout} />
+            <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+              <Routes>
+                <Route path="/" element={<Navigate to={user ? '/dashboard' : '/login'} />} />
+                <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <AuthMF onAuth={handleAuth} />} />
+                <Route path="/dashboard" element={user ? <Dashboard user={user} /> : <Navigate to="/login" />} />
+                <Route path="/issues" element={user ? <IssueReportingMF user={user} /> : <Navigate to="/login" />} />
+                <Route
+                  path="/analytics"
+                  element={
+                    user && (user.role === 'staff' || user.role === 'advocate')
+                      ? <AnalyticsMF user={user} />
+                      : <Navigate to="/dashboard" />
+                  }
+                />
+                <Route path="/chat" element={user ? <ChatbotMF /> : <Navigate to="/login" />} />
+              </Routes>
+            </main>
+          </div>
+        </Router>
+      </NotificationProvider>
     </ApolloProvider>
   );
 }
