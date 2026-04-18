@@ -9,7 +9,7 @@
 - [x] Role-based access control: `resident`, `staff`, `advocate`
 - [x] Auth micro-frontend (login/signup UI with role selection)
 - [x] Google OAuth — Backend (auth service, GraphQL mutation/resolver, .env)
-- [ ] Google OAuth — Frontend AuthMF button integration
+- [x] Google OAuth — Frontend AuthMF button integration (GoogleLogin badge, handlers)
 - [ ] GitHub OAuth — optional
 
 ---

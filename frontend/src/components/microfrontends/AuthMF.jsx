@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { gql } from '@apollo/client';
 import { useMutation } from '@apollo/client/react';
+import { GoogleLogin } from '@react-oauth/google';
 
 const LOGIN = gql`
   mutation Login($email: String!, $password: String!) {
@@ -20,6 +21,15 @@ const SIGNUP = gql`
   }
 `;
 
+const GOOGLE_SIGNIN = gql`
+  mutation GoogleSignIn($token: String!) {
+    googleSignIn(token: $token) {
+      accessToken
+      user { _id username email role }
+    }
+  }
+`;
+
 const inputClass = 'w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400';
 
 export default function AuthMF({ onAuth }) {
@@ -29,9 +39,16 @@ export default function AuthMF({ onAuth }) {
 
   const [login, { loading: loginLoading }] = useMutation(LOGIN);
   const [signUp, { loading: signupLoading }] = useMutation(SIGNUP);
-  const loading = loginLoading || signupLoading;
+  const [googleSignIn, { loading: googleLoading }] = useMutation(GOOGLE_SIGNIN);
+  const loading = loginLoading || signupLoading || googleLoading;
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  const handleAuth = (payload) => {
+    localStorage.setItem('token', payload.accessToken);
+    localStorage.setItem('user', JSON.stringify(payload.user));
+    onAuth(payload.user);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -41,12 +58,24 @@ export default function AuthMF({ onAuth }) {
         ? await login({ variables: { email: form.email, password: form.password } })
         : await signUp({ variables: form });
       const payload = isLogin ? data.login : data.signUp;
-      localStorage.setItem('token', payload.accessToken);
-      localStorage.setItem('user', JSON.stringify(payload.user));
-      onAuth(payload.user);
+      handleAuth(payload);
     } catch (err) {
       setError(err.message);
     }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setError('');
+    try {
+      const { data } = await googleSignIn({ variables: { token: credentialResponse.credential } });
+      handleAuth(data.googleSignIn);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setError('Google sign-in failed. Please try again.');
   };
 
   return (
@@ -125,7 +154,22 @@ export default function AuthMF({ onAuth }) {
             {loading ? 'Loading...' : isLogin ? 'Sign In' : 'Sign Up'}
           </button>
         </form>
-        <p className="text-center text-sm text-gray-500 mt-4">
+
+        <div className="mt-6 flex items-center gap-3">
+          <div className="flex-1 h-px bg-gray-300"></div>
+          <span className="text-xs text-gray-500 font-medium">OR</span>
+          <div className="flex-1 h-px bg-gray-300"></div>
+        </div>
+
+        <div className="mt-6 flex justify-center">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+            text={isLogin ? 'signin_with' : 'signup_with'}
+          />
+        </div>
+
+        <p className="text-center text-sm text-gray-500 mt-6">
           {isLogin ? "Don't have an account?" : 'Already have an account?'}{' '}
           <button
             className="text-indigo-600 hover:underline focus:outline-none focus:underline"
