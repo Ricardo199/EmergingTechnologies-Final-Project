@@ -20,6 +20,8 @@ const SIGNUP = gql`
   }
 `;
 
+const inputClass = 'w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400';
+
 export default function AuthMF({ onAuth }) {
   const [isLogin, setIsLogin] = useState(true);
   const [form, setForm] = useState({ username: '', email: '', password: '', role: 'resident' });
@@ -50,58 +52,85 @@ export default function AuthMF({ onAuth }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold text-indigo-600 mb-6 text-center">
+        <h1 className="text-2xl font-bold text-indigo-600 mb-6 text-center">
           {isLogin ? 'Sign In' : 'Create Account'}
-        </h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        </h1>
+        <form onSubmit={handleSubmit} className="space-y-4" aria-describedby={error ? 'auth-error' : undefined} noValidate>
           {!isLogin && (
+            <div>
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+              <input
+                id="username"
+                className={inputClass}
+                placeholder="Enter your username"
+                value={form.username}
+                onChange={set('username')}
+                autoComplete="username"
+                required
+              />
+            </div>
+          )}
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <input
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              placeholder="Username"
-              value={form.username}
-              onChange={set('username')}
+              id="email"
+              className={inputClass}
+              type="email"
+              placeholder="you@example.com"
+              value={form.email}
+              onChange={set('email')}
+              autoComplete="email"
               required
             />
-          )}
-          <input
-            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            type="email"
-            placeholder="Email"
-            value={form.email}
-            onChange={set('email')}
-            required
-          />
-          <input
-            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            type="password"
-            placeholder="Password"
-            value={form.password}
-            onChange={set('password')}
-            required
-          />
+          </div>
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <input
+              id="password"
+              className={inputClass}
+              type="password"
+              placeholder="Enter your password"
+              value={form.password}
+              onChange={set('password')}
+              autoComplete={isLogin ? 'current-password' : 'new-password'}
+              required
+            />
+          </div>
           {!isLogin && (
-            <select
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              value={form.role}
-              onChange={set('role')}
-            >
-              <option value="resident">Resident</option>
-              <option value="staff">Staff</option>
-              <option value="advocate">Advocate</option>
-            </select>
+            <div>
+              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+              <select
+                id="role"
+                className={inputClass}
+                value={form.role}
+                onChange={set('role')}
+              >
+                <option value="resident">Resident</option>
+                <option value="staff">Staff</option>
+                <option value="advocate">Advocate</option>
+              </select>
+            </div>
           )}
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+          {error && (
+            <p id="auth-error" role="alert" className="text-red-600 text-sm">
+              {error}
+            </p>
+          )}
           <button
             type="submit"
             disabled={loading}
             className="w-full bg-indigo-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
+            aria-busy={loading}
           >
             {loading ? 'Loading...' : isLogin ? 'Sign In' : 'Sign Up'}
           </button>
         </form>
         <p className="text-center text-sm text-gray-500 mt-4">
           {isLogin ? "Don't have an account?" : 'Already have an account?'}{' '}
-          <button className="text-indigo-600 hover:underline" onClick={() => setIsLogin(!isLogin)}>
+          <button
+            className="text-indigo-600 hover:underline focus:outline-none focus:underline"
+            onClick={() => { setIsLogin(!isLogin); setError(''); }}
+          >
             {isLogin ? 'Sign Up' : 'Sign In'}
           </button>
         </p>
