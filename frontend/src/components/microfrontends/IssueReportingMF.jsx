@@ -35,7 +35,7 @@ const PRIORITY_COLORS = {
 
 const BLANK = {
   title: '', description: '', category: 'other', priority: 'medium',
-  address: '', lat: '', lng: '',
+  address: '', lat: '', lng: '', photo: null, photoPreview: null,
 };
 
 const inputClass = 'w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400';
@@ -54,6 +54,25 @@ export default function IssueReportingMF({ user }) {
   const [reportIssue, { loading: submitting }] = useMutation(REPORT_ISSUE);
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setForm((f) => ({
+          ...f,
+          photo: file,
+          photoPreview: reader.result,
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const clearPhoto = () => {
+    setForm((f) => ({ ...f, photo: null, photoPreview: null }));
+  };
 
   const geoLocate = () => {
     navigator.geolocation?.getCurrentPosition(({ coords }) => {
@@ -244,6 +263,39 @@ export default function IssueReportingMF({ user }) {
               Location detected: {form.lat}, {form.lng}
             </p>
           )}
+          <div>
+            <label htmlFor="issue-photo" className="block text-sm font-medium text-gray-700 mb-1">Photo (Optional)</label>
+            <input
+              id="issue-photo"
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoChange}
+              className="block w-full text-sm text-gray-500
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-lg file:border-0
+                file:text-sm file:font-medium
+                file:bg-indigo-50 file:text-indigo-600
+                hover:file:bg-indigo-100"
+              aria-describedby={form.photoPreview ? 'photo-preview' : undefined}
+            />
+            {form.photoPreview && (
+              <div id="photo-preview" className="mt-3 relative inline-block">
+                <img
+                  src={form.photoPreview}
+                  alt="Preview of selected issue photo"
+                  className="h-24 w-24 object-cover rounded-lg border border-gray-200"
+                />
+                <button
+                  type="button"
+                  onClick={clearPhoto}
+                  aria-label="Remove selected photo"
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
+                >
+                  ×
+                </button>
+              </div>
+            )}
+          </div>
           <div aria-live="polite" aria-atomic="true">
             {error && <p id="report-error" role="alert" className="text-red-600 text-sm">{error}</p>}
             {success && <p className="text-green-600 text-sm">{success}</p>}
