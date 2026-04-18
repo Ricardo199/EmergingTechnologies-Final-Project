@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { gql } from '@apollo/client';
 import { useQuery, useMutation } from '@apollo/client/react';
-import { useNotification } from '../context/NotificationContext';
+import { useNotification } from '../../context/NotificationContext';
+import { INPUT_CLASS, LABEL_CLASS, BUTTON_PRIMARY, SELECT_CLASS } from '../../styles/formInputs';
+import { STATUS_COLORS, PRIORITY_COLORS } from '../../styles/colors';
 
 const GET_ISSUES = gql`
   query Issues($status: IssueStatus) {
@@ -21,25 +23,10 @@ const REPORT_ISSUE = gql`
   }
 `;
 
-const STATUS_COLORS = {
-  reported: 'bg-yellow-100 text-yellow-800',
-  in_progress: 'bg-blue-100 text-blue-800',
-  resolved: 'bg-green-100 text-green-800',
-  closed: 'bg-gray-100 text-gray-800',
-};
-
-const PRIORITY_COLORS = {
-  low: 'text-gray-500',
-  medium: 'text-yellow-600',
-  high: 'text-red-600',
-};
-
 const BLANK = {
   title: '', description: '', category: 'other', priority: 'medium',
   address: '', lat: '', lng: '', photo: null, photoPreview: null,
 };
-
-const inputClass = 'w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400';
 
 export default function IssueReportingMF({ user }) {
   const [tab, setTab] = useState('list');
@@ -191,10 +178,10 @@ export default function IssueReportingMF({ user }) {
       >
         <form onSubmit={handleSubmit} className="space-y-4 max-w-lg" noValidate aria-describedby={error ? 'report-error' : undefined}>
           <div>
-            <label htmlFor="issue-title" className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+            <label htmlFor="issue-title" className={LABEL_CLASS}>Title</label>
             <input
               id="issue-title"
-              className={inputClass}
+              className={INPUT_CLASS}
               placeholder="Brief title of the issue"
               value={form.title}
               onChange={set('title')}
@@ -202,10 +189,10 @@ export default function IssueReportingMF({ user }) {
             />
           </div>
           <div>
-            <label htmlFor="issue-description" className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <label htmlFor="issue-description" className={LABEL_CLASS}>Description</label>
             <textarea
               id="issue-description"
-              className={inputClass}
+              className={INPUT_CLASS}
               placeholder="Describe the issue in detail"
               rows={3}
               value={form.description}
@@ -215,10 +202,10 @@ export default function IssueReportingMF({ user }) {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="issue-category" className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+              <label htmlFor="issue-category" className={LABEL_CLASS}>Category</label>
               <select
                 id="issue-category"
-                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                className={SELECT_CLASS}
                 value={form.category}
                 onChange={set('category')}
               >
@@ -228,10 +215,10 @@ export default function IssueReportingMF({ user }) {
               </select>
             </div>
             <div>
-              <label htmlFor="issue-priority" className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+              <label htmlFor="issue-priority" className={LABEL_CLASS}>Priority</label>
               <select
                 id="issue-priority"
-                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                className={SELECT_CLASS}
                 value={form.priority}
                 onChange={set('priority')}
               >
@@ -242,11 +229,11 @@ export default function IssueReportingMF({ user }) {
             </div>
           </div>
           <div>
-            <label htmlFor="issue-address" className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+            <label htmlFor="issue-address" className={LABEL_CLASS}>Address</label>
             <div className="flex gap-2">
               <input
                 id="issue-address"
-                className="flex-1 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm font-normal focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
                 placeholder="Street address or location"
                 value={form.address}
                 onChange={set('address')}
@@ -268,7 +255,7 @@ export default function IssueReportingMF({ user }) {
             </p>
           )}
           <div>
-            <label htmlFor="issue-photo" className="block text-sm font-medium text-gray-700 mb-1">Photo (Optional)</label>
+            <label htmlFor="issue-photo" className={LABEL_CLASS}>Photo (Optional)</label>
             <input
               id="issue-photo"
               type="file"

@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { gql } from '@apollo/client';
 import { useMutation } from '@apollo/client/react';
 import { GoogleLogin } from '@react-oauth/google';
-import { useNotification } from '../context/NotificationContext';
+import { useNotification } from '../../context/NotificationContext';
+import { INPUT_CLASS, LABEL_CLASS, BUTTON_PRIMARY, SELECT_CLASS } from '../../styles/formInputs';
 
 const LOGIN = gql`
   mutation Login($email: String!, $password: String!) {
@@ -39,8 +40,6 @@ const GITHUB_SIGNIN = gql`
     }
   }
 `;
-
-const inputClass = 'w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400';
 
 export default function AuthMF({ onAuth }) {
   const [isLogin, setIsLogin] = useState(true);
@@ -112,10 +111,10 @@ export default function AuthMF({ onAuth }) {
         <form onSubmit={handleSubmit} className="space-y-4" aria-describedby={error ? 'auth-error' : undefined} noValidate>
           {!isLogin && (
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+              <label htmlFor="username" className={LABEL_CLASS}>Username</label>
               <input
                 id="username"
-                className={inputClass}
+                className={INPUT_CLASS}
                 placeholder="Enter your username"
                 value={form.username}
                 onChange={set('username')}
@@ -125,10 +124,10 @@ export default function AuthMF({ onAuth }) {
             </div>
           )}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label htmlFor="email" className={LABEL_CLASS}>Email</label>
             <input
               id="email"
-              className={inputClass}
+              className={INPUT_CLASS}
               type="email"
               placeholder="you@example.com"
               value={form.email}
@@ -138,10 +137,10 @@ export default function AuthMF({ onAuth }) {
             />
           </div>
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label htmlFor="password" className={LABEL_CLASS}>Password</label>
             <input
               id="password"
-              className={inputClass}
+              className={INPUT_CLASS}
               type="password"
               placeholder="Enter your password"
               value={form.password}
@@ -152,10 +151,10 @@ export default function AuthMF({ onAuth }) {
           </div>
           {!isLogin && (
             <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+              <label htmlFor="role" className={LABEL_CLASS}>Role</label>
               <select
                 id="role"
-                className={inputClass}
+                className={SELECT_CLASS}
                 value={form.role}
                 onChange={set('role')}
               >

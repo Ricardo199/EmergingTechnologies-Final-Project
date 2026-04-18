@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { gql } from '@apollo/client';
 import { useLazyQuery } from '@apollo/client/react';
+import { useNotification } from '../../context/NotificationContext';
 
 const AGENT_ANSWER = gql`
   query AgentAnswer($question: String!) {
@@ -14,6 +15,7 @@ export default function ChatbotMF() {
   ]);
   const [input, setInput] = useState('');
   const bottomRef = useRef(null);
+  const { showNotification } = useNotification();
 
   const [ask, { loading }] = useLazyQuery(AGENT_ANSWER, {
     onCompleted: (data) => {
@@ -21,6 +23,7 @@ export default function ChatbotMF() {
     },
     onError: (err) => {
       setMessages((m) => [...m, { role: 'bot', text: `Error: ${err.message}` }]);
+      showNotification('Failed to get response', 'error');
     },
   });
 

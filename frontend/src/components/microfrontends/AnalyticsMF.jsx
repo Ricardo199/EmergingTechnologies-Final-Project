@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { gql } from '@apollo/client';
 import { useQuery, useMutation } from '@apollo/client/react';
+import { STATUS_COLORS, PRIORITY_COLORS, STAT_COLORS } from '../../styles/colors';
+import { useNotification } from '../../context/NotificationContext';
 
 const DASHBOARD = gql`
   query Dashboard {
@@ -37,13 +39,6 @@ const RESOLVE_ISSUE = gql`
   }
 `;
 
-const STATUS_COLORS = {
-  reported: 'bg-yellow-100 text-yellow-800',
-  in_progress: 'bg-blue-100 text-blue-800',
-  resolved: 'bg-green-100 text-green-800',
-  closed: 'bg-gray-100 text-gray-800',
-};
-
 function StatCard({ label, value, color }) {
   return (
     <div className="bg-white rounded-xl shadow-sm p-5 border">
@@ -55,19 +50,30 @@ function StatCard({ label, value, color }) {
 
 export default function AnalyticsMF({ user }) {
   const [tab, setTab] = useState('overview');
+  const { showNotification } = useNotification();
   const { data: dash, loading: dashLoading } = useQuery(DASHBOARD);
   const { data: issuesData, loading: issuesLoading, refetch } = useQuery(GET_ISSUES);
   const [updateIssue] = useMutation(UPDATE_ISSUE);
   const [resolveIssue] = useMutation(RESOLVE_ISSUE);
 
   const handleStatus = async (id, status) => {
-    await updateIssue({ variables: { id, status } });
-    refetch();
+    try {
+      await updateIssue({ variables: { id, status } });
+      showNotification('Issue status updated', 'success');
+      refetch();
+    } catch (err) {
+      showNotification('Failed to update issue', 'error');
+    }
   };
 
   const handleResolve = async (id) => {
-    await resolveIssue({ variables: { id } });
-    refetch();
+    try {
+      await resolveIssue({ variables: { id } });
+      showNotification('Issue resolved', 'success');
+      refetch();
+    } catch (err) {
+      showNotification('Failed to resolve issue', 'error');
+    }
   };
 
   return (
