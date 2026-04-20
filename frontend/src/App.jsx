@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
 import { ApolloClient, InMemoryCache, createHttpLink, gql } from '@apollo/client';
-import { ApolloProvider, useQuery } from '@apollo/client/react';
+import { ApolloProvider, useQuery, useMutation } from '@apollo/client/react';
 import { setContext } from '@apollo/client/link/context';
 
 import { NotificationProvider } from './context/NotificationContext';
@@ -28,6 +28,40 @@ const DASHBOARD_SUMMARY = gql`
     dashboardSummary { totalOpen totalResolved highPriority }
   }
 `;
+
+const GITHUB_SIGNIN = gql`
+  mutation GitHubSignIn($code: String!) {
+    githubSignIn(code: $code) {
+      accessToken
+      user { _id username email role }
+    }
+  }
+`;
+
+/**
+ * Handles the GitHub OAuth redirect, extracts the code, and calls the mutation.
+ */
+function GitHubCallback({ onAuth }) {
+  const navigate = useNavigate();
+  const [githubSignIn] = useMutation(GITHUB_SIGNIN);
+
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get('code');
+    if (!code) { navigate('/login'); return; }
+
+    githubSignIn({ variables: { code } })
+      .then(({ data }) => {
+        const { accessToken, user } = data.githubSignIn;
+        localStorage.setItem('token', accessToken);
+        localStorage.setItem('user', JSON.stringify(user));
+        onAuth(user);
+        navigate('/dashboard');
+      })
+      .catch(() => navigate('/login'));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return <p className="text-center mt-20 text-gray-500">Signing in with GitHub...</p>;
+}
 
 function Dashboard({ user }) {
   const { data } = useQuery(DASHBOARD_SUMMARY);
@@ -144,6 +178,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Navigate to={user ? '/dashboard' : '/login'} />} />
                 <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <AuthMF onAuth={handleAuth} />} />
+                <Route path="/auth/github/callback" element={<GitHubCallback onAuth={handleAuth} />} />
                 <Route path="/dashboard" element={user ? <Dashboard user={user} /> : <Navigate to="/login" />} />
                 <Route path="/issues" element={user ? <IssueReportingMF user={user} /> : <Navigate to="/login" />} />
                 <Route

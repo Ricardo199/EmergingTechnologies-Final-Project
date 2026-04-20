@@ -98,6 +98,9 @@ const authService = {
       }
 
       // Compare provided password with hashed password in database
+      if (!user.password) {
+        throw new Error('Invalid credentials');
+      }
       const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
         throw new Error('Invalid credentials');
@@ -270,11 +273,13 @@ const authService = {
     }
 
     // Find existing user or create new one (upsert pattern)
-    let user = await User.findOne({ email: userData.email });
+    // GitHub may not provide a public email — fall back to login-based address
+    const email = userData.email || `${userData.login}@github.local`;
+    let user = await User.findOne({ email });
     if (!user) {
       user = new User({
         username: userData.login,
-        email: userData.email,
+        email,
         password: '', // OAuth users have no password
         role: 'resident'
       });
