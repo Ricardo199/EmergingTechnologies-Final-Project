@@ -44,8 +44,8 @@ export default function ChatbotMF() {
   // Notification system for error feedback
   const { showNotification } = useNotification();
 
-  // Track previous loading state to detect when query completes
-  const previousLoadingRef = useRef(false);
+  // Track last processed answer to prevent duplicate messages
+  const lastAnswerRef = useRef("");
 
   const [ask, { loading, data }] = useLazyQuery(AGENT_ANSWER, {
     fetchPolicy: "no-cache",
@@ -53,15 +53,15 @@ export default function ChatbotMF() {
       showNotification("Error getting response: " + err.message, "error"),
   });
 
-  // Add message when loading completes using deferred state update
+  // Add message when loading completes
   useEffect(() => {
-    if (previousLoadingRef.current && !loading && data?.agentAnswer) {
+    if (data?.agentAnswer && lastAnswerRef.current !== data.agentAnswer) {
+      lastAnswerRef.current = data.agentAnswer;
       queueMicrotask(() => {
         setMessages((m) => [...m, { role: "bot", text: data.agentAnswer }]);
       });
     }
-    previousLoadingRef.current = loading;
-  }, [loading, data?.agentAnswer]);
+  }, [data?.agentAnswer]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
