@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
 import { ApolloClient, InMemoryCache, createHttpLink, gql } from '@apollo/client';
 import { ApolloProvider, useQuery, useMutation } from '@apollo/client/react';
@@ -44,8 +44,12 @@ const GITHUB_SIGNIN = gql`
 function GitHubCallback({ onAuth }) {
   const navigate = useNavigate();
   const [githubSignIn] = useMutation(GITHUB_SIGNIN);
+  const called = useRef(false);
 
   useEffect(() => {
+    if (called.current) return;
+    called.current = true;
+
     const code = new URLSearchParams(window.location.search).get('code');
     if (!code) { navigate('/login'); return; }
 

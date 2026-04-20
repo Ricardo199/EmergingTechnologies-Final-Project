@@ -199,7 +199,7 @@ const authService = {
       user = new User({
         username: email,
         email,
-        password: '', // OAuth users have no password
+        password: null,
         role: 'resident'
       });
       await user.save();
@@ -231,61 +231,59 @@ const authService = {
    * const result = await authService.githubSignIn(code);
    */
   async githubSignIn(code) {
-
     const url = 'https://github.com/login/oauth/access_token';
     let accessToken, userData;
-    try {
-      // Step 1: Exchange authorization code for access token
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { Accept: "application/json", "Accept-encoding": "application/json" },
-        body: JSON.stringify({
-          client_id: process.env.GITHUB_CLIENT_ID,
-          client_secret: process.env.GITHUB_CLIENT_SECRET,
-          code
-        })
-      });
-      if (!response.ok) {
-        throw new Error('GitHub authentication failed');
-      }
-      const tokenData = await response.json();
 
-      // Step 2: Use access token to fetch user profile from GitHub API
-      const userResponse = await fetch('https://api.github.com/user', {
-        method: "GET",
-        headers: {
-          Authorization: `token ${tokenData.access_token}`,
-          Accept: "application/vnd.github.v3+json",
-          'X-GitHub-Api-Version': '2022-11-28'
-        }
-      });
-      if (!userResponse.ok) {
-        throw new Error('Failed to fetch GitHub user data');
-      }
-      userData = await userResponse.json();
-      accessToken = tokenData.access_token;
-    } catch (error) {
-      logger.logAuth('githubSignIn', 'unknown', false, error);
-      throw new Error('GitHub authentication failed, error: ' + error.message);
+    // Step 1: Exchange authorization code for access token
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client_id: process.env.GITHUB_CLIENT_ID,
+        client_secret: process.env.GITHUB_CLIENT_SECRET,
+        code,
+        redirect_uri: 'http://localhost:5173/auth/github/callback'
+      })
+    });
+
+    const tokenData = await response.json();
+    console.log('[GitHub] token response:', JSON.stringify(tokenData));
+
+    if (tokenData.error) {
+      logger.logAuth('githubSignIn', 'unknown', false, new Error(tokenData.error));
+      throw new Error(`GitHub token error: ${tokenData.error} — ${tokenData.error_description || ''}`);
     }
+
+    accessToken = tokenData.access_token;
     if (!accessToken) {
-      throw new Error('GitHub authentication failed');
+      throw new Error('GitHub did not return an access token');
     }
 
-    // Find existing user or create new one (upsert pattern)
-    // GitHub may not provide a public email — fall back to login-based address
+    // Step 2: Fetch user profile
+    const userResponse = await fetch('https://api.github.com/user', {
+      headers: {
+        Authorization: `token ${accessToken}`,
+        Accept: 'application/vnd.github.v3+json',
+        'X-GitHub-Api-Version': '2022-11-28'
+      }
+    });
+
+    if (!userResponse.ok) {
+      throw new Error(`GitHub user fetch failed: ${userResponse.status}`);
+    }
+    userData = await userResponse.json();
+    console.log('[GitHub] user login:', userData.login, 'email:', userData.email);
+
+    // Step 3: Find or create user
     const email = userData.email || `${userData.login}@github.local`;
     let user = await User.findOne({ email });
     if (!user) {
-      user = new User({
-        username: userData.login,
-        email,
-        password: '', // OAuth users have no password
-        role: 'resident'
-      });
+      user = new User({ username: userData.login, email, password: null, role: 'resident' });
       await user.save();
-    };
-    const authPayload = {
+    }
+
+    logger.logAuth('githubSignIn', user.email, true);
+    return {
       accessToken: this.generateToken(user),
       user: {
         _id: user._id,
@@ -295,8 +293,6 @@ const authService = {
         createdAt: user.createdAt
       }
     };
-    logger.logAuth('githubSignIn', user.email, true);
-    return authPayload;
   },
 };
 
