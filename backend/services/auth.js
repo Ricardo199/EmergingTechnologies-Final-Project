@@ -230,7 +230,7 @@ const authService = {
   async githubSignIn(code) {
 
     const url = 'https://github.com/login/oauth/access_token';
-    let accessToken, userData, authPayload;
+    let accessToken, userData;
     try {
       // Step 1: Exchange authorization code for access token
       const response = await fetch(url, {
