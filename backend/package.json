@@ -19,13 +19,14 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
+    "google-auth-library": "^10.6.2",
     "graphql": "^16.9.0",
     "graphql-tag": "^2.12.6",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.7.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.7",
-    "jest": "^29.7.0"
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.7"
   }
 }
