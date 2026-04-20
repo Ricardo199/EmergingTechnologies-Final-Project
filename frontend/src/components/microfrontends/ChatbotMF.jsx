@@ -1,12 +1,12 @@
-import { useState, useRef, useEffect } from 'react';
-import { gql } from '@apollo/client';
-import { useLazyQuery } from '@apollo/client/react';
-import { useNotification } from '../../context/NotificationContext';
+import { useState, useRef, useEffect } from "react";
+import { gql } from "@apollo/client";
+import { useLazyQuery } from "@apollo/client/react";
+import { useNotification } from "../../context/NotificationContext";
 
 /**
  * ChatbotMF - AI Assistant Chat Micro-Frontend
  * Provides conversational AI interface for answering questions about community issues
- * 
+ *
  * Features:
  * - Real-time chat interface with user/bot message distinction
  * - Lazy-loaded GraphQL queries (questions sent on-demand)
@@ -14,7 +14,7 @@ import { useNotification } from '../../context/NotificationContext';
  * - Loading indicator while awaiting AI response
  * - Error handling with user notifications
  * - Accessible chat log with ARIA attributes
- * 
+ *
  * @component
  * @returns {JSX.Element} Chat interface with input and message history
  */
@@ -32,52 +32,39 @@ export default function ChatbotMF() {
   // Message history: array of { role: 'user'|'bot', text: string }
   // Initialize with welcome message
   const [messages, setMessages] = useState([
-    { role: 'bot', text: 'Hi! Ask me anything about community issues.' },
+    { role: "bot", text: "Hi! Ask me anything about community issues." },
   ]);
-  
+
   // Current input field value
-  const [input, setInput] = useState('');
-  
+  const [input, setInput] = useState("");
+
   // Ref to chat bottom for auto-scroll behavior
   const bottomRef = useRef(null);
-  
+
   // Notification system for error feedback
   const { showNotification } = useNotification();
 
-  // Lazy query for AI responses (only sends when form is submitted)
-  // Handles both successful responses and errors
-  const [ask, { loading, data, error }] = useLazyQuery(AGENT_ANSWER, {
-    // Add bot response to message history
-    onCompleted: (data) => {
-      console.log('Query completed, data:', data);
-      setMessages((m) => [...m, { role: 'bot', text: data.agentAnswer }]);
-    },
-    // Handle query errors with notification
-    onError: (err) => {
-      console.error('Query error:', err);
-      setMessages((m) => [...m, { role: 'bot', text: `Error: ${err.message}` }]);
-      showNotification('Failed to get response', 'error');
-    },
+  // Track previous loading state to detect when query completes
+  const previousLoadingRef = useRef(false);
+
+  const [ask, { loading, data }] = useLazyQuery(AGENT_ANSWER, {
+    fetchPolicy: "no-cache",
+    onError: (err) =>
+      showNotification("Error getting response: " + err.message, "error"),
   });
 
-  /**
-   * Monitor query state for debugging
-   */
+  // Add message when loading completes using deferred state update
   useEffect(() => {
-    if (data) {
-      console.log('useEffect: data received:', data);
+    if (previousLoadingRef.current && !loading && data?.agentAnswer) {
+      queueMicrotask(() => {
+        setMessages((m) => [...m, { role: "bot", text: data.agentAnswer }]);
+      });
     }
-    if (error) {
-      console.error('useEffect: error:', error);
-    }
-  }, [data, error]);
+    previousLoadingRef.current = loading;
+  }, [loading, data?.agentAnswer]);
 
-  /**
-   * Auto-scroll to bottom when new messages arrive
-   * Uses smooth scroll for better UX
-   */
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   /**
@@ -87,24 +74,29 @@ export default function ChatbotMF() {
   const send = (e) => {
     e.preventDefault();
     if (!input.trim()) return;
-    
+
     // Add user message to history
-    setMessages((m) => [...m, { role: 'user', text: input }]);
-    
+    setMessages((m) => [...m, { role: "user", text: input }]);
+
     // Query AI agent with user question
     ask({ variables: { question: input } });
-    
+
     // Clear input field
-    setInput('');
+    setInput("");
   };
 
+  const CHAT_INPUT_LABEL = "Ask a question"; // Label for screen readers
+
   return (
-    <section aria-label="AI Assistant chat" className="bg-white rounded-xl shadow-md flex flex-col h-[520px]">
+    <section
+      aria-label="AI Assistant chat"
+      className="bg-white rounded-xl shadow-md flex flex-col h-[520px]"
+    >
       {/* Chat header */}
       <div className="px-5 py-4 border-b">
         <h1 className="font-semibold text-gray-800 text-sm">AI Assistant</h1>
       </div>
-      
+
       {/* Chat message history */}
       <div
         role="log"
@@ -113,42 +105,52 @@ export default function ChatbotMF() {
         className="flex-1 overflow-y-auto px-5 py-4 space-y-3"
       >
         {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+          <div
+            key={i}
+            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+          >
             {/* Message bubble: different styles for user vs bot */}
             <div
               className={`max-w-[75%] px-4 py-2 rounded-2xl text-sm ${
-                msg.role === 'user'
-                  ? 'bg-indigo-600 text-white rounded-br-sm'
-                  : 'bg-gray-100 text-gray-800 rounded-bl-sm'
+                msg.role === "user"
+                  ? "bg-indigo-600 text-white rounded-br-sm"
+                  : "bg-gray-100 text-gray-800 rounded-bl-sm"
               }`}
             >
               {/* Screen reader context */}
-              <span className="sr-only">{msg.role === 'user' ? 'You: ' : 'Assistant: '}</span>
+              <span className="sr-only">
+                {msg.role === "user" ? "You: " : "Assistant: "}
+              </span>
               {msg.text}
             </div>
           </div>
         ))}
-        
+
         {/* Loading indicator while waiting for response */}
         {loading && (
           <div className="flex justify-start" aria-live="polite">
-            <div className="bg-gray-100 text-gray-400 px-4 py-2 rounded-2xl rounded-bl-sm text-sm" aria-label="Assistant is thinking">
+            <div
+              className="bg-gray-100 text-gray-400 px-4 py-2 rounded-2xl rounded-bl-sm text-sm"
+              aria-label="Assistant is thinking"
+            >
               Thinking...
             </div>
           </div>
         )}
-        
+
         {/* Auto-scroll anchor */}
         <div ref={bottomRef} />
       </div>
-      
+
       {/* Message input form */}
       <form onSubmit={send} className="px-5 py-4 border-t flex gap-2">
-        <label htmlFor="chat-input" className="sr-only">Ask a question</label>
+        <label htmlFor="chat-input" className="sr-only">
+          {CHAT_INPUT_LABEL}
+        </label>
         <input
           id="chat-input"
           className="flex-1 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          placeholder="Ask a question..."
+          placeholder={CHAT_INPUT_LABEL}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           autoComplete="off"
