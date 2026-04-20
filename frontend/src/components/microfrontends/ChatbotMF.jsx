@@ -46,17 +46,31 @@ export default function ChatbotMF() {
 
   // Lazy query for AI responses (only sends when form is submitted)
   // Handles both successful responses and errors
-  const [ask, { loading }] = useLazyQuery(AGENT_ANSWER, {
+  const [ask, { loading, data, error }] = useLazyQuery(AGENT_ANSWER, {
     // Add bot response to message history
     onCompleted: (data) => {
+      console.log('Query completed, data:', data);
       setMessages((m) => [...m, { role: 'bot', text: data.agentAnswer }]);
     },
     // Handle query errors with notification
     onError: (err) => {
+      console.error('Query error:', err);
       setMessages((m) => [...m, { role: 'bot', text: `Error: ${err.message}` }]);
       showNotification('Failed to get response', 'error');
     },
   });
+
+  /**
+   * Monitor query state for debugging
+   */
+  useEffect(() => {
+    if (data) {
+      console.log('useEffect: data received:', data);
+    }
+    if (error) {
+      console.error('useEffect: error:', error);
+    }
+  }, [data, error]);
 
   /**
    * Auto-scroll to bottom when new messages arrive

@@ -100,8 +100,12 @@ export const resolvers = {
         },
 
         agentAnswer: async (_, { question }, { aiService }) => {
+            console.log('agentAnswer query received with question:', question);
             const issues = await Issue.find({});
-            return aiService.answerQuestion(question, issues);
+            console.log('Found', issues.length, 'issues in database');
+            const answer = await aiService.answerQuestion(question, issues);
+            console.log('AI service returned:', answer);
+            return answer;
         },
     },
 
