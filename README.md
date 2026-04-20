@@ -52,7 +52,7 @@ Frontend (Vite + React)
 | **Backend** | Node.js, Express, GraphQL, Apollo Server 4 |
 | **Database** | MongoDB (Mongoose), GeoJSON geospatial data |
 | **Authentication** | JWT, OAuth 2.0 (Google, GitHub) |
-| **AI/ML** | Rule-based classification (Gemini integration planned) |
+| **AI/ML** | Rule-based classification + Gemini API (active), LangGraph agent (in progress) |
 | **File Upload** | Base64 image encoding in GraphQL mutations |
 
 ---
@@ -113,6 +113,18 @@ cd frontend
 npm run dev
 
 # Open http://localhost:5173
+```
+
+### Running Tests
+
+```bash
+# Backend (Jest)
+cd backend
+npm test
+
+# Frontend (Vitest)
+cd frontend
+npm test
 ```
 
 ---
@@ -252,8 +264,10 @@ query AgentAnswer($question: String!) {
 │   ├── services/
 │   │   ├── auth.js              # JWT, OAuth token handling
 │   │   ├── issuesService.js     # Issue business logic
-│   │   ├── aiService.js         # Rule-based AI classification
-│   │   └── logger.js            # Logging utility
+│   │   ├── aiService.js         # AI classification + Gemini integration
+│   │   └── langGraphGPT.js      # LangGraph multi-node agent (Phase 3)
+│   ├── tests/
+│   │   └── aiService.test.js    # Jest unit tests for AI service
 │   └── utils/
 │       └── logger.js            # Winston logger setup
 │
@@ -276,9 +290,13 @@ query AgentAnswer($question: String!) {
 │   │   │       └── ChatbotMF.jsx               # Chatbot
 │   │   ├── context/
 │   │   │   └── NotificationContext.jsx        # Global notification state
-│   │   └── styles/
-│   │       ├── colors.js                      # Color constants
-│   │       └── formInputs.js                  # Form styling
+│   │   ├── styles/
+│   │   │   ├── colors.js                      # Color constants
+│   │   │   └── formInputs.js                  # Form styling
+│   │   └── tests/
+│   │       ├── NotificationContext.test.jsx   # Notification context tests
+│   │       ├── styles.test.js                 # Style utility tests
+│   │       └── setup.js                       # Vitest setup
 │   └── public/
 │
 └── README.md (this file)
@@ -359,31 +377,11 @@ export default function AuthMF({ onAuth }) {
 
 ## 🧠 AI/ML Strategy
 
-### Current Implementation (Rule-Based)
-- **Category Classification** — Keyword matching (e.g., "pothole", "streetlight")
-- **Trend Analysis** — Simple aggregation by category and status
-- **Chatbot** — Pattern matching with hardcoded responses
-
-### Phase 2: Gemini Integration (Planned)
-```javascript
-// Replace rule-based with LLM
-const geminiService = {
-  classifyIssue: async (title, description) => {
-    // Use Gemini to infer category, priority, sentiment
-  },
-  generateInsight: async (issues) => {
-    // Analyze trends, predict patterns
-  },
-  answerQuestion: async (question, context) => {
-    // Real agentic reasoning with tool use
-  }
-};
-```
-
-### Phase 3: LangGraph Chatbot (Planned)
-- Multi-turn conversation graphs with memory
-- Tool use for querying issues and analytics
-- Sentiment-aware responses
+- **Category Classification** — Keyword matching with Gemini API fallback (`aiService.classifyIssue`)
+- **Trend Analysis** — Aggregation by category/status with `detectTrends`, `generatePredictions`, `generateAlerts`
+- **Chatbot** — Pattern matching with Gemini-powered responses via `answerQuestion`
+- **Issue Summarization** — Gemini-generated or rule-based fallback via `summarizeIssue`
+- `aiService.js` calls `gemini-pro` when `GEMINI_API_KEY` is set; falls back to rule-based logic automatically
 
 ---
 
