@@ -323,14 +323,6 @@ export default function IssueReportingMF({ user }) {
                 onChange={set('address')}
                 required
               />
-              <button
-                type="button"
-                onClick={geoLocate}
-                aria-label="Use my current location"
-                className="px-3 py-2 border rounded-lg text-sm text-indigo-600 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              >
-                📍
-              </button>
             </div>
           </div>
           
