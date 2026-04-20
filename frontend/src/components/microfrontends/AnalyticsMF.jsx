@@ -92,7 +92,7 @@ function StatCard({ label, value, color }) {
   );
 }
 
-export default function AnalyticsMF({ user }) {
+export default function AnalyticsMF() {
   // Tab navigation: 'overview' for dashboard, 'manage' for issue management table
   const [tab, setTab] = useState('overview');
   
@@ -120,7 +120,7 @@ export default function AnalyticsMF({ user }) {
       showNotification('Issue status updated', 'success');
       refetch();
     } catch (err) {
-      showNotification('Failed to update issue', 'error');
+      showNotification('Failed to update issue', `error: ${err.message}`);
     }
   };
 
@@ -134,7 +134,7 @@ export default function AnalyticsMF({ user }) {
       showNotification('Issue resolved', 'success');
       refetch();
     } catch (err) {
-      showNotification('Failed to resolve issue', 'error');
+      showNotification('Failed to resolve issue', `error: ${err.message}`);
     }
   };
 
