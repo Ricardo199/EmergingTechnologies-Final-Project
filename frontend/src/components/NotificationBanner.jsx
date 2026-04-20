@@ -77,47 +77,6 @@ export default function NotificationBanner() {
           </div>
           
           {/* Close button */}
- * @component
- * @returns {JSX.Element} Toast notification container
- * 
- * @example
- * // Place once in App layout, typically in main wrapper
- * <NotificationBanner />
- * 
- * // Then use hook to trigger anywhere:
- * const { showNotification } = useNotification();
- * showNotification('Saved successfully!', 'success');
- */
-export default function NotificationBanner() {
-  const { notifications, dismissNotification } = useNotification();
-
-  return (
-    <div
-      // Accessibility: announce new notifications to screen readers
-      role="region"
-      aria-live="polite"
-      aria-atomic="true"
-      // Fixed positioning: top-right corner stays visible
-      className="fixed top-4 right-4 z-50 space-y-2 max-w-sm"
-    >
-      {notifications.map((notification) => (
-        <div
-          key={notification.id}
-          // Style changes based on notification type
-          className={`flex items-center justify-between gap-3 px-4 py-3 rounded-lg border shadow-md animate-slide-in ${typeStyles[notification.type]}`}
-          role="alert"
-        >
-          {/* Icon and message */}
-          <div className="flex items-center gap-2">
-            {/* Type-specific icon */}
-            <span className="font-bold text-lg" aria-hidden="true">
-              {typeIcons[notification.type]}
-            </span>
-            {/* Notification message */}
-            <span className="text-sm font-medium">{notification.message}</span>
-          </div>
-          
-          {/* Close button */}
           <button
             onClick={() => dismissNotification(notification.id)}
             aria-label={`Close ${notification.type} notification`}

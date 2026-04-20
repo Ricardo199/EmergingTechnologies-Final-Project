@@ -22,12 +22,18 @@ import App from './App.jsx'
  * Mount React application to DOM element with ID "root"
  * Wrapped in StrictMode for development checks and GoogleOAuthProvider for OAuth authentication
  */
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     {/* GoogleOAuthProvider: Enables Google Sign-In functionality throughout the app */}
-    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-      {/* Main application component */}
+    {googleClientId ? (
+      <GoogleOAuthProvider clientId={googleClientId}>
+        {/* Main application component */}
+        <App />
+      </GoogleOAuthProvider>
+    ) : (
       <App />
-    </GoogleOAuthProvider>
+    )}
   </StrictMode>,
 )

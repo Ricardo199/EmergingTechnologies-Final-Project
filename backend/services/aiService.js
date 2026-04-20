@@ -110,8 +110,7 @@ class AIService {
             }
         }
 
-        const sortedCategories = Object.entries(summary.byCategory)
-            .sort((a, b) => b[1] - a[1]);
+        const sortedCategories = Object.entries(summary.byCategory).sort((a, b) => b[1] - a[1]);
         
         if (sortedCategories.length > 0) {
             summary.recentTrends = sortedCategories.slice(0, 3).map(([category, count]) => ({
@@ -122,6 +121,65 @@ class AIService {
         }
 
         return summary;
+    }
+
+    async generateInsight(issues = []) {
+        if (!issues || issues.length === 0) {
+            return 'No issues data available for analysis.';
+        }
+
+        if (this.geminiApiKey) {
+            try {
+                const categoryCounts = {};
+                const statusCounts = {};
+                const recentIssues = [];
+
+                issues.forEach(issue => {
+                    categoryCounts[issue.category] = (categoryCounts[issue.category] || 0) + 1;
+                    statusCounts[issue.status] = (statusCounts[issue.status] || 0) + 1;
+                    
+                    if (recentIssues.length < 5) {
+                        recentIssues.push({
+                            title: issue.title,
+                            category: issue.category,
+                            status: issue.status,
+                            priority: issue.priority
+                        });
+                    }
+                });
+
+                const dataSummary = `
+Total Issues: ${issues.length}
+By Category: ${JSON.stringify(categoryCounts)}
+By Status: ${JSON.stringify(statusCounts)}
+Recent Issues: ${JSON.stringify(recentIssues)}
+`;
+
+                const prompt = `Analyze these civic issue statistics and provide actionable insights:
+
+${dataSummary}
+
+Provide a brief analysis (2-3 sentences) about:
+1. Which category has the most issues
+2. What percentage are resolved vs open
+3. One specific recommendation for the city
+
+Be concise and actionable.`;
+
+                const response = await this.callGeminiAPI(prompt);
+                if (response) return response;
+            } catch (error) {
+                console.error('Gemini API error in generateInsight, using fallback:', error.message);
+            }
+        }
+
+        const categoryCounts = {};
+        issues.forEach(issue => {
+            categoryCounts[issue.category] = (categoryCounts[issue.category] || 0) + 1;
+        });
+
+        const topCategory = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1])[0];
+        return `Based on ${issues.length} total issues: "${topCategory[0]}" is the most reported category with ${topCategory[1]} reports.`;
     }
 
     async answerQuestion(question, issues = []) {
@@ -230,11 +288,9 @@ class AIService {
         if (lower.includes('recommend') || lower.includes('suggest')) {
             return this.generateRecommendations(issues, trend);
         }
-        
         if (lower.includes('predict') || lower.includes('forecast')) {
             return this.generatePredictions(issues, trend);
         }
-        
         if (lower.includes('alert') || lower.includes('urgent')) {
             return this.generateAlerts(issues);
         }
@@ -245,18 +301,15 @@ class AIService {
     generateRecommendations(issues, trend) {
         const openCount = issues.filter(i => ['reported', 'in_progress'].includes(i.status)).length;
         const highPriorityCount = issues.filter(i => i.priority === 'high').length;
-        
         let recommendations = [];
         
         if (highPriorityCount > 5) {
             recommendations.push(`High priority: ${highPriorityCount} urgent issues need immediate attention.`);
         }
-        
         if (trend.recentTrends.length > 0) {
             const topCategory = trend.recentTrends[0];
             recommendations.push(`Focus on ${topCategory.category} issues (${topCategory.count} reports, ${topCategory.percentage}% of total).`);
         }
-        
         if (openCount > 10) {
             recommendations.push(`Consider allocating more resources - ${openCount} issues are still open.`);
         }
@@ -272,7 +325,6 @@ class AIService {
         // Last 10 issues
         const recentIssues = issues.slice(-10);
         const recentTrends = this.detectTrends(recentIssues);
-        
         let predictions = [];
         
         if (recentTrends.urgent > 3) {
@@ -300,11 +352,9 @@ class AIService {
         if (hazards.length > 0) {
             alerts.push(`${hazards.length} safety/high-priority issues require immediate attention.`);
         }
-        
         if (flooding.length > 2) {
             alerts.push(`${flooding.length} flooding reports - check drainage systems.`);
         }
-        
         if (oldOpen.length > 5) {
             alerts.push(`${oldOpen.length} issues open for over a week - review backlog.`);
         }

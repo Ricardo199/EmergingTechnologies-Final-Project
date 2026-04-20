@@ -64,7 +64,7 @@ const startServer = async () => {
         })
     );
 
-    const PORT = process.env.PORT || 4001;
+    const PORT = process.env.PORT || 4002;
     app.listen(PORT, () => {
         console.log(`Civic Issue Tracker Service running on port ${PORT}`);
         console.log(`GraphQL endpoint: http://localhost:${PORT}/graphql`);

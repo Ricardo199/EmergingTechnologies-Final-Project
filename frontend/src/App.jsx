@@ -11,7 +11,7 @@ import IssueReportingMF from './components/microfrontends/IssueReportingMF';
 import AnalyticsMF from './components/microfrontends/AnalyticsMF';
 import ChatbotMF from './components/microfrontends/ChatbotMF';
 
-const httpLink = createHttpLink({ uri: 'http://localhost:4001/graphql' });
+const httpLink = createHttpLink({ uri: 'http://localhost:4002/graphql' });
 
 const authLink = setContext((_, { headers }) => {
   const token = localStorage.getItem('token');
