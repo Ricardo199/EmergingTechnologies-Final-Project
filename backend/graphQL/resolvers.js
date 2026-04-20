@@ -1,3 +1,13 @@
+/**
+ * resolvers.js - GraphQL Resolvers
+ * Implements all Query and Mutation handlers for the Civic Issue Tracker API.
+ *
+ * Auth guards:
+ *   requireAuth(user)  - any authenticated user
+ *   requireStaff(user) - staff role only
+ *
+ * Context received per request: { user, JWT_SECRET, aiService, User, Issue }
+ */
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import User from '../model/user.js';

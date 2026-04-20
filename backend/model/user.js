@@ -1,3 +1,11 @@
+/**
+ * user.js - Mongoose User Schema
+ * Defines the data model for platform users.
+ *
+ * Supports both email/password and OAuth (Google, GitHub) accounts.
+ * OAuth users have password: null — no password validation is applied.
+ * Roles control access: residents report issues, staff/advocates manage them.
+ */
 import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
@@ -11,6 +19,7 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
+    // null for OAuth users (Google/GitHub) who authenticate without a password
     password: {
         type: String,
         required: false,

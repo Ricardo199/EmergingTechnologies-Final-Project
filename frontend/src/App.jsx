@@ -1,3 +1,19 @@
+/**
+ * App.jsx - Root Application Component
+ * Sets up Apollo Client, routing, authentication state, and global layout.
+ *
+ * Apollo Client: connects to GraphQL endpoint at http://localhost:4002/graphql
+ *                attaches JWT from localStorage to every request via authLink
+ *
+ * Routes:
+ *   /                       → redirect to /dashboard or /login
+ *   /login                  → AuthMF (unauthenticated only)
+ *   /auth/github/callback   → GitHubCallback (OAuth redirect handler)
+ *   /dashboard              → Dashboard (authenticated)
+ *   /issues                 → IssueReportingMF (authenticated)
+ *   /analytics              → AnalyticsMF (staff/advocate only)
+ *   /chat                   → ChatbotMF (authenticated)
+ */
 import { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
 import { ApolloClient, InMemoryCache, createHttpLink, gql } from '@apollo/client';
@@ -11,8 +27,10 @@ import IssueReportingMF from './components/microfrontends/IssueReportingMF';
 import AnalyticsMF from './components/microfrontends/AnalyticsMF';
 import ChatbotMF from './components/microfrontends/ChatbotMF';
 
+// Apollo HTTP link pointing to the GraphQL backend
 const httpLink = createHttpLink({ uri: 'http://localhost:4002/graphql' });
 
+// Auth link: injects JWT Bearer token from localStorage into every request header
 const authLink = setContext((_, { headers }) => {
   const token = localStorage.getItem('token');
   return { headers: { ...headers, authorization: token ? `Bearer ${token}` : '' } };
@@ -67,6 +85,14 @@ function GitHubCallback({ onAuth }) {
   return <p className="text-center mt-20 text-gray-500">Signing in with GitHub...</p>;
 }
 
+/**
+ * Dashboard Component
+ * Landing page for authenticated users showing quick-access cards
+ * and live summary metrics (open, resolved, high-priority issue counts).
+ *
+ * @param {Object} props
+ * @param {Object} props.user - Authenticated user object
+ */
 function Dashboard({ user }) {
   const { data } = useQuery(DASHBOARD_SUMMARY);
   const s = data?.dashboardSummary;
@@ -110,6 +136,15 @@ function Dashboard({ user }) {
   );
 }
 
+/**
+ * Nav Component
+ * Top navigation bar with role-aware links and logout button.
+ * Highlights the active route using aria-current and border styling.
+ *
+ * @param {Object} props
+ * @param {Object|null} props.user - Authenticated user or null
+ * @param {Function} props.onLogout - Callback to clear auth state
+ */
 function Nav({ user, onLogout }) {
   const location = useLocation();
   const navLink = (to, label) => (
@@ -157,6 +192,11 @@ function Nav({ user, onLogout }) {
   );
 }
 
+/**
+ * App Component
+ * Root component managing global auth state and rendering the router.
+ * Auth state is persisted to localStorage and rehydrated on page load.
+ */
 function App() {
   const [user, setUser] = useState(() => {
     const stored = localStorage.getItem('user');

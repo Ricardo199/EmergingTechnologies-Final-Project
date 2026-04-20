@@ -1,3 +1,13 @@
+/**
+ * colors.js - Shared Color Constants
+ * Tailwind CSS class maps for consistent status, priority, stat, and alert coloring
+ * across all components. Import the relevant map and index by value.
+ *
+ * @example
+ * import { STATUS_COLORS, PRIORITY_COLORS } from '../styles/colors';
+ * <span className={STATUS_COLORS[issue.status]}>{issue.status}</span>
+ */
+
 // Status badge colors
 export const STATUS_COLORS = {
   reported: 'bg-yellow-100 text-yellow-800',

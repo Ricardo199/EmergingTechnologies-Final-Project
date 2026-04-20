@@ -1,3 +1,12 @@
+/**
+ * server.js - Application Entry Point
+ * Initializes Express + Apollo GraphQL server, connects to MongoDB,
+ * and wires up JWT-based authentication context for every request.
+ *
+ * Stack: Express, Apollo Server 4, Mongoose, JWT
+ * Port: process.env.PORT || 4002
+ * GraphQL endpoint: /graphql
+ */
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -16,6 +25,12 @@ import aiService from './services/aiService.js';
 const app = express();
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
+/**
+ * Decode and verify a JWT from the Authorization header.
+ * Returns the decoded payload (userId, email, role) or null if invalid/missing.
+ * @param {string|undefined} token - Raw token string (without 'Bearer ' prefix)
+ * @returns {Object|null}
+ */
 const getUser = (token) => {
     if (!token) return null;
     try {
@@ -25,6 +40,10 @@ const getUser = (token) => {
     }
 };
 
+/**
+ * Connect to MongoDB using MONGO_URI env variable.
+ * Exits process on failure to prevent server running without a database.
+ */
 const connectDB = async () => {
     try {
         await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/civic-issues');
@@ -35,6 +54,10 @@ const connectDB = async () => {
     }
 };
 
+/**
+ * Bootstrap the Apollo + Express server.
+ * Order: connect DB → start Apollo → register middleware → listen.
+ */
 const startServer = async () => {
     await connectDB();
 

@@ -1,3 +1,10 @@
+/**
+ * issue.js - Mongoose Issue Schema
+ * Defines the data model for civic issue reports stored in MongoDB.
+ *
+ * Location uses GeoJSON Point format for geospatial queries.
+ * The pre-save hook keeps updatedAt current on every save.
+ */
 import mongoose from 'mongoose';
 
 const issueSchema = new mongoose.Schema({
@@ -14,6 +21,7 @@ const issueSchema = new mongoose.Schema({
         enum: ['pothole', 'streetlight', 'flooding', 'safety', 'other'],
         required: true,
     },
+    // GeoJSON Point: coordinates stored as [longitude, latitude]
     location: {
         type: {
             type: String,
@@ -32,18 +40,20 @@ const issueSchema = new mongoose.Schema({
     status: {
         type: String,
         enum: ['reported', 'in_progress', 'resolved', 'closed'],
-        default: 'reported',
+        default: 'reported',   // New issues start as reported
     },
     priority: {
         type: String,
         enum: ['low', 'medium', 'high'],
         default: 'medium',
     },
+    // Reference to the user who submitted the issue
     reportedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
     },
+    // Optional: staff member assigned to handle the issue
     assignedTo: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -58,6 +68,7 @@ const issueSchema = new mongoose.Schema({
     },
 });
 
+// Automatically update updatedAt timestamp before every save
 issueSchema.pre('save', function (next) {
     this.updatedAt = Date.now();
     next();

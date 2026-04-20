@@ -1,9 +1,29 @@
+/**
+ * langGraphGPT.js - LangGraph Agent (Planned / Phase 3)
+ * Implements a multi-node graph-based AI agent for handling civic issue queries.
+ * Uses LangGraph to route questions through intent analysis, data fetching,
+ * stats computation, and response composition.
+ *
+ * NOTE: This is a planned feature. The 'langraph' package is not yet installed.
+ * Currently the app uses aiService.answerQuestion() directly in resolvers.
+ *
+ * Graph flow:
+ *   receiveQuestion → analyzeIntent → fetchIssues → computeStats → composeResponse
+ */
 import { Graph, Tool } from 'langraph';
 import aiService from './aiService.js';
 import logger from '../utils/logger.js';
 
+// In-memory conversation history for multi-turn context (per session)
 const conversationMemory = [];
 
+/**
+ * Fetch issues from the database filtered by status and/or category.
+ * @param {Object} params
+ * @param {string} [params.status] - Filter by issue status
+ * @param {string} [params.category] - Filter by issue category
+ * @returns {Promise<Array>} Matching issues
+ */
 async function queryIssues({ status, category }) {
   const issues = await aiService.getIssues({ status, category }); 
   return issues;
