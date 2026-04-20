@@ -239,6 +239,12 @@ Be concise and actionable.`;
             return `Total issues in the system: ${issues.length}. Open: ${issues.filter(i => ['reported', 'in_progress'].includes(i.status)).length}, Resolved: ${issues.filter(i => i.status === 'resolved').length}.`;
         }
 
+        if (lower.includes('what') || lower.includes('list') || lower.includes('raised') || lower.includes('reported')) {
+            if (issues.length === 0) return 'No issues have been reported yet.';
+            const summary = issues.slice(0, 5).map(i => `"${i.title}" (${i.category}, ${i.status})`).join(', ');
+            return `${issues.length} issue(s) reported: ${summary}${issues.length > 5 ? `, and ${issues.length - 5} more.` : '.'}`;
+        }
+
         return 'I can answer questions about issue status, trends, and safety. Try asking about open issues, resolved issues, trends, or safety hazards.';
     }
 
