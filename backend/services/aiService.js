@@ -239,6 +239,26 @@ Be concise and actionable.`;
             return `Total issues in the system: ${issues.length}. Open: ${issues.filter(i => ['reported', 'in_progress'].includes(i.status)).length}, Resolved: ${issues.filter(i => i.status === 'resolved').length}.`;
         }
 
+        if(lower.includes('describe') || lower.includes('details') || lower.includes('example')) {
+            if (issues.length === 0) return 'No issues have been reported yet.';
+            const example = issues[0];
+            return `Example issue: "${example.title}" in category "${example.category}" with status "${example.status}" and priority "${example.priority}".`;
+        }
+
+        if(lower.includes('priority') || lower.includes('urgent') || lower.includes('high')) {
+            const highPriority = issues.filter(i => i.priority === 'high').length;
+            return `There are ${highPriority} high-priority issues that may require immediate attention.`;
+        }
+
+        if(lower.includes('category') || lower.includes('type') || lower.includes('most common')) {
+            const topCategory = Object.entries(trend.byCategory).sort((a, b) => b[1] - a[1])[0];
+            return topCategory ? `The most common category is "${topCategory[0]}" with ${topCategory[1]} reports.` : 'No categories have been reported yet.';
+        }
+
+        if(lower.includes('solution') || lower.includes('fix') || lower.includes('recommendation')) {
+            return 'For specific solutions, please ask for recommendations based on current trends and issue data.';
+        }
+
         if (lower.includes('what') || lower.includes('list') || lower.includes('raised') || lower.includes('reported')) {
             if (issues.length === 0) return 'No issues have been reported yet.';
             const summary = issues.slice(0, 5).map(i => `"${i.title}" (${i.category}, ${i.status})`).join(', ');

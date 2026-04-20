@@ -44,45 +44,32 @@ export default function ChatbotMF() {
   // Notification system for error feedback
   const { showNotification } = useNotification();
 
-  // Track last processed answer to prevent duplicate messages
   const lastAnswerRef = useRef("");
 
-  const [ask, { loading, data }] = useLazyQuery(AGENT_ANSWER, {
+  const [ask, { loading }] = useLazyQuery(AGENT_ANSWER, {
     fetchPolicy: "no-cache",
-    onError: (err) =>
-      showNotification("Error getting response: " + err.message, "error"),
   });
-
-  // Add message when loading completes
-  useEffect(() => {
-    if (data?.agentAnswer && lastAnswerRef.current !== data.agentAnswer) {
-      lastAnswerRef.current = data.agentAnswer;
-      queueMicrotask(() => {
-        setMessages((m) => [...m, { role: "bot", text: data.agentAnswer }]);
-      });
-    }
-  }, [data?.agentAnswer]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  /**
-   * Handle form submission: send user message and query AI
-   * @param {Event} e - Form submit event
-   */
-  const send = (e) => {
+  const send = async (e) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || loading) return;
 
-    // Add user message to history
-    setMessages((m) => [...m, { role: "user", text: input }]);
-
-    // Query AI agent with user question
-    ask({ variables: { question: input } });
-
-    // Clear input field
+    const question = input.trim();
+    setMessages((m) => [...m, { role: "user", text: question }]);
     setInput("");
+
+    try {
+      const { data } = await ask({ variables: { question } });
+      const answer = data?.agentAnswer ?? "Sorry, I could not get a response.";
+      setMessages((m) => [...m, { role: "bot", text: answer }]);
+    } catch (err) {
+      showNotification("Error getting response: " + err.message, "error");
+      setMessages((m) => [...m, { role: "bot", text: "Sorry, something went wrong." }]);
+    }
   };
 
   const CHAT_INPUT_LABEL = "Ask a question"; // Label for screen readers
