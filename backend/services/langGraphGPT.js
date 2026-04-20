@@ -1,11 +1,8 @@
 /**
- * langGraphGPT.js - LangGraph Agent (Planned / Phase 3)
+ * langGraphGPT.js - LangGraph Agent
  * Implements a multi-node graph-based AI agent for handling civic issue queries.
  * Uses LangGraph to route questions through intent analysis, data fetching,
  * stats computation, and response composition.
- *
- * NOTE: This is a planned feature. The 'langraph' package is not yet installed.
- * Currently the app uses aiService.answerQuestion() directly in resolvers.
  *
  * Graph flow:
  *   receiveQuestion → analyzeIntent → fetchIssues → computeStats → composeResponse

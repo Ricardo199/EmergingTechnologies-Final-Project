@@ -265,7 +265,7 @@ query AgentAnswer($question: String!) {
 │   │   ├── auth.js              # JWT, OAuth token handling
 │   │   ├── issuesService.js     # Issue business logic
 │   │   ├── aiService.js         # AI classification + Gemini integration
-│   │   └── langGraphGPT.js      # LangGraph multi-node agent (Phase 3)
+│   │   └── langGraphGPT.js      # LangGraph multi-node agent
 │   ├── tests/
 │   │   └── aiService.test.js    # Jest unit tests for AI service
 │   └── utils/
