@@ -29,7 +29,7 @@ class AIService {
         const category = issue.category || 'unknown';
         const status = issue.status || 'unknown';
         const priority = issue.priority || 'medium';
-        const location = issue.location ? address || 'unknown location';
+        const location = issue.location || 'unknown location';
 
         if (this.geminiApiKey) {
             try {
