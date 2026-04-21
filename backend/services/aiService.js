@@ -5,7 +5,7 @@ dotenv.config();
 class AIService {
     constructor() {
         this.geminiApiKey = process.env.GEMINI_API_KEY;
-        this.geminiApiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+        this.geminiApiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent';
 
         this.categoryKeywords = {
             pothole: ['pothole', 'road', 'asphalt', 'crack', 'sinkhole'],
