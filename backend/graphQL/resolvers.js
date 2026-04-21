@@ -97,7 +97,7 @@ export const resolvers = {
             if (!issue) {
                 throw new Error('Issue not found');
             }
-            return aiService.summarizeIssue(issue);
+            return await aiService.summarizeIssue(issue);
         },
 
         trendInsights: async (_, __, { aiService }) => {
@@ -139,17 +139,21 @@ export const resolvers = {
             }
         },
 
-        reportIssue: async (_, { input }, { user }) => {
+        reportIssue: async (_, { input }, { user, aiService }) => {
             try {
                 requireAuth(user);
-                if (!input.title || !input.description || !input.category || !input.location) {
+                if (!input.title || !input.description || !input.location) {
                     throw new Error('Missing required issue fields');
                 }
+                
+                // Use AI to classify the issue
+                const aiClassification = await aiService.classifyIssue(`${input.title} ${input.description}`);
+                
                 const issue = await Issue.create({
                     title: input.title,
                     description: input.description,
-                    category: input.category,
-                    priority: input.priority || 'medium',
+                    category: aiClassification.category || input.category || 'other',
+                    priority: aiClassification.priority || input.priority || 'medium',
                     status: 'reported',
                     location: {
                         type: input.location.type,
