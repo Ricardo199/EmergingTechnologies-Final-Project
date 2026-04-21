@@ -6,7 +6,7 @@ class AIService {
     constructor() {
         this.geminiApiKey = process.env.GEMINI_API_KEY;
         this.geminiApiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
-        
+
         this.categoryKeywords = {
             pothole: ['pothole', 'road', 'asphalt', 'crack', 'sinkhole'],
             streetlight: ['streetlight', 'light', 'lamp', 'dark', 'bulb', 'fixture'],
@@ -29,7 +29,7 @@ class AIService {
         const category = issue.category || 'unknown';
         const status = issue.status || 'unknown';
         const priority = issue.priority || 'medium';
-        const location = issue.location?.address || 'unknown location';
+        const location = issue.location ? address || 'unknown location';
 
         if (this.geminiApiKey) {
             try {
@@ -111,7 +111,7 @@ class AIService {
         }
 
         const sortedCategories = Object.entries(summary.byCategory).sort((a, b) => b[1] - a[1]);
-        
+
         if (sortedCategories.length > 0) {
             summary.recentTrends = sortedCategories.slice(0, 3).map(([category, count]) => ({
                 category,
@@ -137,7 +137,7 @@ class AIService {
                 issues.forEach(issue => {
                     categoryCounts[issue.category] = (categoryCounts[issue.category] || 0) + 1;
                     statusCounts[issue.status] = (statusCounts[issue.status] || 0) + 1;
-                    
+
                     if (recentIssues.length < 5) {
                         recentIssues.push({
                             title: issue.title,
@@ -183,14 +183,14 @@ Be concise and actionable.`;
     }
 
     async answerQuestion(question, issues = []) {
-        if (typeof question !== 'string' || !question.trim()) {
-            return 'Ask a question about open issues, trends, or safety alerts.';
-        }
+            if (typeof question !== 'string' || !question.trim()) {
+                return 'Ask a question about open issues, trends, or safety alerts.';
+            }
 
-        if (this.geminiApiKey) {
-            try {
-                const trendData = this.detectTrends(issues);
-                const context = `
+            if (this.geminiApiKey) {
+                try {
+                    const trendData = this.detectTrends(issues);
+                    const context = `
                     Total issues: ${issues.length}
                     Open issues: ${issues.filter(i => ['reported', 'in_progress'].includes(i.status)).length}
                     Resolved issues: ${issues.filter(i => i.status === 'resolved').length}
@@ -198,71 +198,76 @@ Be concise and actionable.`;
                     Top categories: ${JSON.stringify(trendData.byCategory)}
                 `;
 
-                const prompt = `You are a civic issue tracking assistant. Answer this question based on the data:
+                    const prompt = `You are a civic issue tracking assistant. Answer this question based on the data:
                 
                 Context: ${context}
                 Question: ${question}
                 
                 Provide a helpful, concise response.`;
 
-                const response = await this.callGeminiAPI(prompt);
-                if (response) return response;
-            } catch (error) {
-                console.error('Gemini API error, using basic responses:', error.message);
+                    const response = await this.callGeminiAPI(prompt);
+                    if (response) return response;
+                } catch (error) {
+                    console.error('Gemini API error, using basic responses:', error.message);
+                }
             }
+
+            const lower = question.toLowerCase();
+            const trend = this.detectTrends(issues);
+
+            if (lower.includes('open') || lower.includes('reported') || lower.includes('backlog')) {
+                const open = issues.filter((issue) => ['reported', 'in_progress'].includes(issue.status)).length;
+                return `There are ${open} active issues in the backlog.`;
+            }
+
+            if (lower.includes('resolved') || lower.includes('closed')) {
+                const resolved = issues.filter((issue) => issue.status === 'resolved').length;
+                return `There are ${resolved} resolved issues.`;
+            }
+
+            if (lower.includes('trend') || lower.includes('pattern')) {
+                const top = Object.entries(trend.byCategory).sort((a, b) => b[1] - a[1])[0];
+                return top ? `Top trend: ${top[0]} with ${top[1]} reports. Urgent issues: ${trend.urgent}.` : 'No clear trends yet.';
+            }
+
+            if (lower.includes('safety') || lower.includes('hazard') || lower.includes('danger')) {
+                const hazards = issues.filter((issue) => issue.category === 'safety' || issue.priority === 'high');
+                return hazards.length ? `Safety alert: ${hazards.length} high-priority/hazard issues need review.` : 'No active safety hazards were found.';
+            }
+
+            if (lower.includes('total') || lower.includes('how many')) {
+                return `Total issues in the system: ${issues.length}. Open: ${issues.filter(i => ['reported', 'in_progress'].includes(i.status)).length}, Resolved: ${issues.filter(i => i.status === 'resolved').length}.`;
+            }
+
+            if (lower.includes('describe') || lower.includes('details') || lower.includes('example')) {
+                if (issues.length === 0) return 'No issues have been reported yet.';
+                const example = issues[0];
+                return `Example issue: "${example.title}" in category "${example.category}" with status "${example.status}" and priority "${example.priority}".`;
+            }
+
+            if (lower.includes('priority') || lower.includes('urgent') || lower.includes('high')) {
+                const highPriority = issues.filter(i => i.priority === 'high').length;
+                return `There are ${highPriority} high-priority issues that may require immediate attention.`;
+            }
+
+            if (lower.includes('category') || lower.includes('type') || lower.includes('most common')) {
+                const topCategory = Object.entries(trend.byCategory).sort((a, b) => b[1] - a[1])[0];
+                return topCategory ? `The most common category is "${topCategory[0]}" with ${topCategory[1]} reports.` : 'No categories have been reported yet.';
+            }
+
+            if (lower.includes('solution') || lower.includes('fix') || lower.includes('recommendation')) {
+                return 'For specific solutions, please ask for recommendations based on current trends and issue data.';
+            }
+
+            if (lower.includes('what') || lower.includes('list') || lower.includes('raised') || lower.includes('reported')) {
+                if (issues.length === 0) return 'No issues have been reported yet.';
+                const summary = issues.slice(0, 5).map(i => `"${i.title}" (${i.category}, ${i.status})`).join(', ');
+                return `${issues.length} issue(s) reported: ${summary}${issues.length > 5 ? `, and ${issues.length - 5} more.` : '.'}`;
         }
 
-        const lower = question.toLowerCase();
-        const trend = this.detectTrends(issues);
-
-        if (lower.includes('open') || lower.includes('reported') || lower.includes('backlog')) {
-            const open = issues.filter((issue) => ['reported', 'in_progress'].includes(issue.status)).length;
-            return `There are ${open} active issues in the backlog.`;
-        }
-
-        if (lower.includes('resolved') || lower.includes('closed')) {
-            const resolved = issues.filter((issue) => issue.status === 'resolved').length;
-            return `There are ${resolved} resolved issues.`;
-        }
-
-        if (lower.includes('trend') || lower.includes('pattern')) {
-            const top = Object.entries(trend.byCategory).sort((a, b) => b[1] - a[1])[0];
-            return top ? `Top trend: ${top[0]} with ${top[1]} reports. Urgent issues: ${trend.urgent}.` : 'No clear trends yet.';
-        }
-
-        if (lower.includes('safety') || lower.includes('hazard') || lower.includes('danger')) {
-            const hazards = issues.filter((issue) => issue.category === 'safety' || issue.priority === 'high');
-            return hazards.length ? `Safety alert: ${hazards.length} high-priority/hazard issues need review.` : 'No active safety hazards were found.';
-        }
-
-        if (lower.includes('total') || lower.includes('how many')) {
-            return `Total issues in the system: ${issues.length}. Open: ${issues.filter(i => ['reported', 'in_progress'].includes(i.status)).length}, Resolved: ${issues.filter(i => i.status === 'resolved').length}.`;
-        }
-
-        if(lower.includes('describe') || lower.includes('details') || lower.includes('example')) {
-            if (issues.length === 0) return 'No issues have been reported yet.';
-            const example = issues[0];
-            return `Example issue: "${example.title}" in category "${example.category}" with status "${example.status}" and priority "${example.priority}".`;
-        }
-
-        if(lower.includes('priority') || lower.includes('urgent') || lower.includes('high')) {
+        if (lower.includes('prioritiq') || lower.includes('urgent') || lower.includes('high')) {
             const highPriority = issues.filter(i => i.priority === 'high').length;
             return `There are ${highPriority} high-priority issues that may require immediate attention.`;
-        }
-
-        if(lower.includes('category') || lower.includes('type') || lower.includes('most common')) {
-            const topCategory = Object.entries(trend.byCategory).sort((a, b) => b[1] - a[1])[0];
-            return topCategory ? `The most common category is "${topCategory[0]}" with ${topCategory[1]} reports.` : 'No categories have been reported yet.';
-        }
-
-        if(lower.includes('solution') || lower.includes('fix') || lower.includes('recommendation')) {
-            return 'For specific solutions, please ask for recommendations based on current trends and issue data.';
-        }
-
-        if (lower.includes('what') || lower.includes('list') || lower.includes('raised') || lower.includes('reported')) {
-            if (issues.length === 0) return 'No issues have been reported yet.';
-            const summary = issues.slice(0, 5).map(i => `"${i.title}" (${i.category}, ${i.status})`).join(', ');
-            return `${issues.length} issue(s) reported: ${summary}${issues.length > 5 ? `, and ${issues.length - 5} more.` : '.'}`;
         }
 
         return 'I can answer questions about issue status, trends, and safety. Try asking about open issues, resolved issues, trends, or safety hazards.';
