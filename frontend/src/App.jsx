@@ -69,7 +69,7 @@ function GitHubCallback({ onAuth }) {
     called.current = true;
 
     const code = new URLSearchParams(window.location.search).get('code');
-    if (!code) { navigate('/login'); return; }
+    if (!code) { navigate('/loginn'); return; }
 
     githubSignIn({ variables: { code } })
       .then(({ data }) => {
