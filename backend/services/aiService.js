@@ -151,11 +151,10 @@ class AIService {
                 });
 
                 const dataSummary = `
-Total Issues: ${issues.length}
-By Category: ${JSON.stringify(categoryCounts)}
-By Status: ${JSON.stringify(statusCounts)}
-Recent Issues: ${JSON.stringify(recentIssues)}
-`;
+                    Total Issues: ${issues.length}
+                    By Category: ${JSON.stringify(categoryCounts)}
+                    By Status: ${JSON.stringify(statusCounts)}
+                    Recent Issues: ${JSON.stringify(recentIssues)}`;
 
                 const prompt = `Analyze these civic issue statistics and provide actionable insights:
 
@@ -185,14 +184,14 @@ Be concise and actionable.`;
     }
 
     async answerQuestion(question, issues = []) {
-            if (typeof question !== 'string' || !question.trim()) {
-                return 'Ask a question about open issues, trends, or safety alerts.';
-            }
+        if (typeof question !== 'string' || !question.trim()) {
+            return 'Ask a question about open issues, trends, or safety alerts.';
+        }
 
-            if (this.geminiApiKey) {
-                try {
-                    const trendData = this.detectTrends(issues);
-                    const context = `
+        if (this.geminiApiKey) {
+            try {
+                const trendData = this.detectTrends(issues);
+                const context = `
                     Total issues: ${issues.length}
                     Open issues: ${issues.filter(i => ['reported', 'in_progress'].includes(i.status)).length}
                     Resolved issues: ${issues.filter(i => i.status === 'resolved').length}
@@ -200,74 +199,74 @@ Be concise and actionable.`;
                     Top categories: ${JSON.stringify(trendData.byCategory)}
                 `;
 
-                    const prompt = `You are a civic issue tracking assistant. Answer this question based on the data:
+                const prompt = `You are a civic issue tracking assistant. Answer this question based on the data:
                 
                 Context: ${context}
                 Question: ${question}
                 
                 Provide a helpful, concise response.`;
 
-                    const response = await this.callGeminiAPI(prompt);
-                    if (response) return response;
-                } catch (error) {
-                    console.error('Gemini API error, using basic responses:', error.message);
-                }
+                const response = await this.callGeminiAPI(prompt);
+                if (response) return response;
+            } catch (error) {
+                console.error('Gemini API error, using basic responses:', error.message);
             }
-
-            const lower = question.toLowerCase();
-            const trend = this.detectTrends(issues);
-
-            if (lower.includes('open') || lower.includes('reported') || lower.includes('backlog')) {
-                const open = issues.filter((issue) => ['reported', 'in_progress'].includes(issue.status)).length;
-                return `There are ${open} active issues in the backlog.`;
-            }
-
-            if (lower.includes('resolved') || lower.includes('closed')) {
-                const resolved = issues.filter((issue) => issue.status === 'resolved').length;
-                return `There are ${resolved} resolved issues.`;
-            }
-
-            if (lower.includes('trend') || lower.includes('pattern')) {
-                const top = Object.entries(trend.byCategory).sort((a, b) => b[1] - a[1])[0];
-                return top ? `Top trend: ${top[0]} with ${top[1]} reports. Urgent issues: ${trend.urgent}.` : 'No clear trends yet.';
-            }
-
-            if (lower.includes('safety') || lower.includes('hazard') || lower.includes('danger')) {
-                const hazards = issues.filter((issue) => issue.category === 'safety' || issue.priority === 'high');
-                return hazards.length ? `Safety alert: ${hazards.length} high-priority/hazard issues need review.` : 'No active safety hazards were found.';
-            }
-
-            if (lower.includes('total') || lower.includes('how many')) {
-                return `Total issues in the system: ${issues.length}. Open: ${issues.filter(i => ['reported', 'in_progress'].includes(i.status)).length}, Resolved: ${issues.filter(i => i.status === 'resolved').length}.`;
-            }
-
-            if (lower.includes('describe') || lower.includes('details') || lower.includes('example')) {
-                if (issues.length === 0) return 'No issues have been reported yet.';
-                const example = issues[0];
-                return `Example issue: "${example.title}" in category "${example.category}" with status "${example.status}" and priority "${example.priority}".`;
-            }
-
-            if (lower.includes('priority') || lower.includes('urgent') || lower.includes('high')) {
-                const highPriority = issues.filter(i => i.priority === 'high').length;
-                return `There are ${highPriority} high-priority issues that may require immediate attention.`;
-            }
-
-            if (lower.includes('category') || lower.includes('type') || lower.includes('most common')) {
-                const topCategory = Object.entries(trend.byCategory).sort((a, b) => b[1] - a[1])[0];
-                return topCategory ? `The most common category is "${topCategory[0]}" with ${topCategory[1]} reports.` : 'No categories have been reported yet.';
-            }
-
-            if (lower.includes('solution') || lower.includes('fix') || lower.includes('recommendation')) {
-                return 'For specific solutions, please ask for recommendations based on current trends and issue data.';
-            }
-
-            if (lower.includes('what') || lower.includes('list') || lower.includes('raised') || lower.includes('reported')) {
-                if (issues.length === 0) return 'No issues have been reported yet.';
-                const summary = issues.slice(0, 5).map(i => `"${i.title}" (${i.category}, ${i.status})`).join(', ');
-                return `${issues.length} issue(s) reported: ${summary}${issues.length > 5 ? `, and ${issues.length - 5} more.` : '.'}`;
         }
 
-        if (lower.includes('prioritiq') || lower.includes('urgent') || lower.includes('high')) {
+        const lower = question.toLowerCase();
+        const trend = this.detectTrends(issues);
+
+        if (lower.includes('open') || lower.includes('reported') || lower.includes('backlog')) {
+            const open = issues.filter((issue) => ['reported', 'in_progress'].includes(issue.status)).length;
+            return `There are ${open} active issues in the backlog.`;
+        }
+
+        if (lower.includes('resolved') || lower.includes('closed')) {
+            const resolved = issues.filter((issue) => issue.status === 'resolved').length;
+            return `There are ${resolved} resolved issues.`;
+        }
+
+        if (lower.includes('trend') || lower.includes('pattern')) {
+            const top = Object.entries(trend.byCategory).sort((a, b) => b[1] - a[1])[0];
+            return top ? `Top trend: ${top[0]} with ${top[1]} reports. Urgent issues: ${trend.urgent}.` : 'No clear trends yet.';
+        }
+
+        if (lower.includes('safety') || lower.includes('hazard') || lower.includes('danger')) {
+            const hazards = issues.filter((issue) => issue.category === 'safety' || issue.priority === 'high');
+            return hazards.length ? `Safety alert: ${hazards.length} high-priority/hazard issues need review.` : 'No active safety hazards were found.';
+        }
+
+        if (lower.includes('total') || lower.includes('how many')) {
+            return `Total issues in the system: ${issues.length}. Open: ${issues.filter(i => ['reported', 'in_progress'].includes(i.status)).length}, Resolved: ${issues.filter(i => i.status === 'resolved').length}.`;
+        }
+
+        if (lower.includes('describe') || lower.includes('details') || lower.includes('example')) {
+            if (issues.length === 0) return 'No issues have been reported yet.';
+            const example = issues[0];
+            return `Example issue: "${example.title}" in category "${example.category}" with status "${example.status}" and priority "${example.priority}".`;
+        }
+
+        if (lower.includes('priority') || lower.includes('urgent') || lower.includes('high')) {
+            const highPriority = issues.filter(i => i.priority === 'high').length;
+            return `There are ${highPriority} high-priority issues that may require immediate attention.`;
+        }
+
+        if (lower.includes('category') || lower.includes('type') || lower.includes('most common')) {
+            const topCategory = Object.entries(trend.byCategory).sort((a, b) => b[1] - a[1])[0];
+            return topCategory ? `The most common category is "${topCategory[0]}" with ${topCategory[1]} reports.` : 'No categories have been reported yet.';
+        }
+
+        if (lower.includes('solution') || lower.includes('fix') || lower.includes('recommendation')) {
+            return 'For specific solutions, please ask for recommendations based on current trends and issue data.';
+        }
+
+        if (lower.includes('what') || lower.includes('list') || lower.includes('raised') || lower.includes('reported')) {
+            if (issues.length === 0) return 'No issues have been reported yet.';
+            const summary = issues.slice(0, 5).map(i => `"${i.title}" (${i.category}, ${i.status})`).join(', ');
+            return `${issues.length} issue(s) reported: ${summary}${issues.length > 5 ? `, and ${issues.length - 5} more.` : '.'}`;
+        }
+
+        if (lower.includes('priority') || lower.includes('urgent') || lower.includes('high')) {
             const highPriority = issues.filter(i => i.priority === 'high').length;
             return `There are ${highPriority} high-priority issues that may require immediate attention.`;
         }
@@ -276,48 +275,47 @@ Be concise and actionable.`;
     }
 
     async callGeminiAPI(prompt) {
-        if (!this.geminiApiKey) {
-            throw new Error('Gemini API key not configured');
-        }
+            try {
+                console.log('Calling Gemini API with prompt:', prompt);
+                const response = await fetch(`${this.geminiApiUrl}?key=${this.geminiApiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: prompt
+                            }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.7,
+                            topK: 40,
+                            topP: 0.95,
+                            maxOutputTokens: 1024,
+                        }
+                    })
+                });
 
-        try {
-            const response = await fetch(`${this.geminiApiUrl}?key=${this.geminiApiKey}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [{
-                            text: prompt
-                        }]
-                    }],
-                    generationConfig: {
-                        temperature: 0.7,
-                        topK: 40,
-                        topP: 0.95,
-                        maxOutputTokens: 1024,
-                    }
-                })
-            });
+                const data = await response.json();
+                console.log('Gemini API response:', data);
 
-            const data = await response.json();
-            
-            if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-                return data.candidates[0].content.parts[0].text;
+                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+                    console.log('Gemini API generated content:', data.candidates[0].content);
+                    return data.candidates[0].content.parts[0].text;
+                }
+
+                return null;
+            } catch (error) {
+                console.error('Error calling Gemini API:', error.message);
+                return null;
             }
-            
-            return null;
-        } catch (error) {
-            console.error('Error calling Gemini API:', error.message);
-            return null;
         }
-    }
 
     async processAgentQuery(question, issues = []) {
         const trend = this.detectTrends(issues);
         const lower = question.toLowerCase();
-        
+
         if (lower.includes('recommend') || lower.includes('suggest')) {
             return this.generateRecommendations(issues, trend);
         }
@@ -327,7 +325,7 @@ Be concise and actionable.`;
         if (lower.includes('alert') || lower.includes('urgent')) {
             return this.generateAlerts(issues);
         }
-        
+
         return this.answerQuestion(question, issues);
     }
 
@@ -335,7 +333,7 @@ Be concise and actionable.`;
         const openCount = issues.filter(i => ['reported', 'in_progress'].includes(i.status)).length;
         const highPriorityCount = issues.filter(i => i.priority === 'high').length;
         let recommendations = [];
-        
+
         if (highPriorityCount > 5) {
             recommendations.push(`High priority: ${highPriorityCount} urgent issues need immediate attention.`);
         }
@@ -346,7 +344,7 @@ Be concise and actionable.`;
         if (openCount > 10) {
             recommendations.push(`Consider allocating more resources - ${openCount} issues are still open.`);
         }
-        
+
         return recommendations.length > 0 ? `Recommendations: ${recommendations.join(' ')}` : 'No specific recommendations at this time. All metrics appear normal.';
     }
 
@@ -359,16 +357,16 @@ Be concise and actionable.`;
         const recentIssues = issues.slice(-10);
         const recentTrends = this.detectTrends(recentIssues);
         let predictions = [];
-        
+
         if (recentTrends.urgent > 3) {
             predictions.push('Urgent issues are increasing - expect higher workload.');
         }
-        
+
         const topCategory = Object.entries(recentTrends.byCategory).sort((a, b) => b[1] - a[1])[0];
         if (topCategory) {
             predictions.push(`${topCategory[0]} issues may continue to rise based on recent patterns.`);
         }
-        
+
         return predictions.length > 0 ? `Predictions: ${predictions.join(' ')}` : 'Current trends appear stable. No significant changes expected.';
     }
 
@@ -379,9 +377,9 @@ Be concise and actionable.`;
             const daysOpen = (Date.now() - new Date(i.createdAt).getTime()) / (1000 * 60 * 60 * 24);
             return ['reported', 'in_progress'].includes(i.status) && daysOpen > 7;
         });
-        
+
         let alerts = [];
-        
+
         if (hazards.length > 0) {
             alerts.push(`${hazards.length} safety/high-priority issues require immediate attention.`);
         }
@@ -391,7 +389,7 @@ Be concise and actionable.`;
         if (oldOpen.length > 5) {
             alerts.push(`${oldOpen.length} issues open for over a week - review backlog.`);
         }
-        
+
         return alerts.length > 0
             ? alerts.join(' ') : 'No critical alerts at this time.';
     }
