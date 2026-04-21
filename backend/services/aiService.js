@@ -51,7 +51,7 @@ class AIService {
         return `Summary: ${title} (${category}) at ${location}. Status: ${status}. Priority: ${priority}.`;
     }
 
-    classifyIssue(text) {
+    async classifyIssue(text) {
         if (typeof text !== 'string' || !text.trim()) {
             return { category: 'other', priority: 'medium', note: 'Cannot classify empty text.' };
         }
@@ -64,25 +64,27 @@ class AIService {
                 Issue text: ${text}
                 Respond with JSON format: {"category": "category_name", "priority": "priority_level", "confidence": 0.95}`;
 
-                const lower = text.toLowerCase();
-                const category = Object.keys(this.categoryKeywords).find((key) =>
-                    this.categoryKeywords[key].some((term) => lower.includes(term))
-                ) || 'other';
-
-                const priority = Object.keys(this.priorityKeywords).find((key) =>
-                    this.priorityKeywords[key].some((term) => lower.includes(term))
-                ) || 'medium';
-
-                return {
-                    category,
-                    priority,
-                    note: `Classified as ${category} with ${priority} priority.`,
-                };
+                const response = await this.callGeminiAPI(prompt);
+                if (response) {
+                    try {
+                        const result = JSON.parse(response);
+                        if (result.category && result.priority) {
+                            return {
+                                category: result.category,
+                                priority: result.priority,
+                                note: `AI classified as ${result.category} with ${result.priority} priority (confidence: ${result.confidence || 'N/A'}).`,
+                            };
+                        }
+                    } catch (parseError) {
+                        console.error('Failed to parse Gemini response as JSON:', parseError.message);
+                    }
+                }
             } catch (error) {
-                console.error('AI classification error:', error.message);
+                console.error('AI classification error, falling back to keyword matching:', error.message);
             }
         }
 
+        // Fallback to keyword-based classification
         const lower = text.toLowerCase();
         const category = Object.keys(this.categoryKeywords).find((key) =>
             this.categoryKeywords[key].some((term) => lower.includes(term))
@@ -95,7 +97,7 @@ class AIService {
         return {
             category,
             priority,
-            note: `Classified as ${category} with ${priority} priority.`,
+            note: `Classified as ${category} with ${priority} priority (rule-based).`,
         };
     }
 
