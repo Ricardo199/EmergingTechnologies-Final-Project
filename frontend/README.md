@@ -1,16 +1,76 @@
-# React + Vite
+# Civic Issue Tracker — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React 19 + Vite frontend for the Civic Issue Tracker platform.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+| Tool | Version | Purpose |
+|------|---------|---------|
+| React | 19 | UI framework |
+| Vite | 6 | Dev server & bundler |
+| Tailwind CSS | 4 | Utility-first styling |
+| Apollo Client | 3 | GraphQL data fetching & caching |
+| React Router | 7 | Client-side routing |
 
-## React Compiler
+## Getting Started
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+# Install dependencies
+npm install
 
-## Expanding the ESLint configuration
+# Copy environment template and fill in values
+cp .env.example .env
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+# Start the dev server (http://localhost:5173)
+npm run dev
+```
+
+> **Note:** The backend must be running on port 4001 before starting the frontend. See the [root README](../README.md) for full setup instructions.
+
+## Environment Variables
+
+```env
+VITE_GOOGLE_CLIENT_ID=your_google_client_id
+VITE_GITHUB_CLIENT_ID=your_github_client_id
+```
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start Vite dev server with HMR |
+| `npm run build` | Production build to `dist/` |
+| `npm run preview` | Preview production build locally |
+| `npm test` | Run Vitest unit tests |
+| `npm run lint` | Run ESLint |
+
+## Architecture
+
+The frontend is structured as a set of isolated **micro-frontends**, each responsible for a single feature domain:
+
+```
+src/
+├── components/
+│   ├── microfrontends/
+│   │   ├── AuthMF.jsx             # Login / sign-up / OAuth
+│   │   ├── IssueReportingMF.jsx   # Submit and browse issues
+│   │   ├── AnalyticsMF.jsx        # Staff dashboard & management
+│   │   └── ChatbotMF.jsx          # AI assistant chat
+│   └── NotificationBanner.jsx     # Global toast notifications
+├── context/
+│   └── NotificationContext.jsx    # Cross-component notification state
+├── styles/
+│   ├── colors.js                  # Shared color constants
+│   └── formInputs.js              # Shared form class constants
+└── tests/
+    ├── NotificationContext.test.jsx
+    └── styles.test.js
+```
+
+## Testing
+
+```bash
+npm test
+```
+
+Tests are written with [Vitest](https://vitest.dev/) and [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/).
